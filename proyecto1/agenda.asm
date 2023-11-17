@@ -7,8 +7,13 @@
 #      19-10175       #
 #######################
 
+.include "macros.asm"
+.include "horario.asm"
+
 .data
 
-.include
-
 .text
+
+main: 	print_str ("Hola Mundo\n")
+	print_int (10)
+	done

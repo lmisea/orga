@@ -1,3 +1,5 @@
+.data
+
 C1N: .asciiz "CI-2613 MEM-008 Algoritmos III"
 C1H: .ascii  "-0000T0304-0000T0304-0000-0000"
 
