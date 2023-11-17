@@ -1,3 +1,12 @@
+#############################
+#        Proyecto 1         #
+#  Ejemplo Archivo Horario  #
+#       Sergio Carillo      #
+#         14-11315          #
+#         Luis Isea         #
+#         19-10175          #
+#############################
+
 .data
 
 C1N: .asciiz "CI-2613 MEM-008 Algoritmos III"
