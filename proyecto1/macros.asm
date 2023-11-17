@@ -20,6 +20,38 @@ myLabel:.asciiz %str
 	syscall
 .end_macro
 
+# Macro para imprimir un space
+# Macro para imprimir un espacio reservado
+.macro print_space(%buffer, %length)
+    .data
+    buffer_str: .space 40  # Ajustar el tamaño según tus necesidades
+    .text
+
+    # Copiar el contenido del buffer al espacio reservado
+    la $t0, %buffer
+    la $t1, buffer_str
+    li $t2, %length
+    loop_copy:
+        lb $t3, 0($t0)
+        sb $t3, 0($t1)
+        addi $t0, $t0, 1
+        addi $t1, $t1, 1
+        subi $t2, $t2, 1
+        bnez $t2, loop_copy
+
+    # Imprimir el contenido del espacio reservado
+    li $v0, 4
+    la $a0, buffer_str
+    syscall
+
+    li $v0, 4
+    la $a0, newline  # Asumiendo que hay una cadena de nueva línea definida
+    syscall
+.end_macro
+
+
+
+
 # Macro para hacer un bucle for genÃ©rico
 # El bluce for tiene 4 parÃ¡metros, %regIterator es el registro que itera
 # desde %from hasta %to, y en cada iteraciÃ³n se ejecuta %bodyMacroName, que a

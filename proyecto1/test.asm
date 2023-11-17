@@ -1,19 +1,18 @@
 .include "horario.asm"
+.include "macros.asm"
 
 .data
 newline: .asciiz "\n"
 
-# Variables para almacenar la información
+# Variables para almacenar CiN
 codigo: .space 8
 edificio: .space 8
-nombre: .space 40  # Longitud máxima de "organizacion del computador"
+nombre: .space 40  # Longitud maxima de "organizacion del computador"
 
 .text
 main:
-    # Cargar el horario desde el archivo usando la directiva .include
 
     # Desestructurar y almacenar en las variables en el orden deseado
-    #    la $t0, C1N+16      # Puntero al inicio de "Algoritmos III"
     la $t1, edificio     # Puntero al inicio de edificio
     la $t2, codigo       # Puntero al inicio de codigo
     la $t3, nombre       # Puntero al inicio de nombre
@@ -52,29 +51,9 @@ main:
         subi $t5, $t5, 1  # Decrementar la longitud
         bnez $t5, loop_codigo  # Repetir hasta que se alcance la longitud
 
-    # Imprimir las variables
-    li $v0, 4
-    la $a0, nombre
-    syscall
+    # Imprimir las variables    
+    print_space (nombre, 40)
+    print_space (edificio, 8)
+    print_space (codigo, 8)
 
-    li $v0, 4
-    la $a0, newline
-    syscall
-
-    li $v0, 4
-    la $a0, edificio
-    syscall
-
-    li $v0, 4
-    la $a0, newline
-    syscall
-
-    li $v0, 4
-    la $a0, codigo
-    syscall
-
-    # Resto del código...
-
-    # Salir del programa
-    li $v0, 10
-    syscall
+    done
