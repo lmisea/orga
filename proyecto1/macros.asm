@@ -80,3 +80,44 @@ myLabel:.asciiz %str
 	li $v0,10
 	syscall
 .end_macro
+
+
+# LEER CiN
+# Macro para leer CiN
+# %dest: Registro o dirección donde se almacenará la cadena
+# %src: Dirección de la cadena a copiar
+# %start: Posición de inicio en la cadena (bit o byte)
+# %length: Longitud de la cadena a copiar
+.macro leerC(%dest, %src, %start, %length)
+    .data
+    buffer: .space %length
+    .text
+
+    # Copiar el contenido
+    la $t0, %src
+    la $t1, buffer
+    li $t2, %length
+    add $t0, $t0, %start  # Mover al inicio especificado
+    loop_copy:
+        lb $t3, 0($t0)
+        sb $t3, 0($t1)
+        addi $t0, $t0, 1
+        addi $t1, $t1, 1
+        subi $t2, $t2, 1
+        bnez $t2, loop_copy
+
+    # Imprimir el contenido
+    print_space (buffer, %length)
+
+    # Copiar el contenido al destino
+    la $t0, %dest
+    la $t1, buffer
+    li $t2, %length
+    loop_copy_dest:
+        lb $t3, 0($t1)
+        sb $t3, 0($t0)
+        addi $t0, $t0, 1
+        addi $t1, $t1, 1
+        subi $t2, $t2, 1
+        bnez $t2, loop_copy_dest
+.end_macro
