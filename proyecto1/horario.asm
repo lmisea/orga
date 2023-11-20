@@ -9,6 +9,19 @@
 
 # Los macro son secuencias invocables que se definen una sola vez y se pueden usar varias veces
 
+.macro crearHorarioClases(%horario, %horConflictos)
+	inicializarHorario(%horario)
+	inicializarHorario(%horConflictos)
+	agregarCursoAlHorario(C1H,'1', %horario, %horConflictos) 
+	agregarCursoAlHorario(C2H,'2', %horario, %horConflictos)
+	agregarCursoAlHorario(C3H,'3', %horario, %horConflictos)
+	agregarCursoAlHorario(C4H,'4', %horario, %horConflictos)
+	agregarCursoAlHorario(C5H,'5', %horario, %horConflictos)
+	agregarCursoAlHorario(C6H,'6', %horario, %horConflictos)
+	agregarCursoAlHorario(C7H,'7', %horario, %horConflictos)
+	agregarCursoAlHorario(C8H,'8', %horario, %horConflictos)
+.end_macro 
+
 # Macro para inicializar todos los 96 caracteres de un horario a '-'
 .macro inicializarHorario(%horario)
 		la  $t0, %horario
@@ -40,37 +53,28 @@ ponerChar:	sb  $t1, 0($t0)
         	   j end
         
         teoria: # Agregamos en el día $t2 la clase T%numCurso
-        	print_str ("T el ")
-        	print_int ($t2)
-        	print_str (", desde 0")
-        	add $t0, $t0, 2  	# Obtenemos la hora inicial
-        	lb  $t5, 0($t0)
+        	add  $t0, $t0, 2  	# Obtenemos la hora inicial
+        	lb   $t5, 0($t0)
         	andi $t5, $t5,0x0F 	# convertimos $t3 de ascii a un int
-        	print_int ($t5)
-        	print_str (" hasta 0")
-        	add $t0, $t0, 2  	# Obtenemos la hora final
-        	lb  $t6, 0($t0)
+        	
+        	add  $t0, $t0, 2  	# Obtenemos la hora final
+        	lb   $t6, 0($t0)
         	andi $t6, $t6,0x0F 	# convertimos $t3 de ascii a un int
-        	print_int ($t6)
-        	print_str ("\n")
+
         	sub $t0, $t0, 4 
 		verificarSiHayConflicto($t2, %horario, %horConflictos, 'T', %numCurso, $t5, $t6)
         	j continue
         
         lab: 	# Agregamos en el día $t2 la clase L%numCurso
-        	print_str ("L el ")
-        	print_int ($t2)
-        	print_str (", desde 0")
-        	add $t0, $t0, 2  	# Obtenemos la hora inicial
-        	lb  $t5, 0($t0)
+        	add  $t0, $t0, 2  	# Obtenemos la hora inicial
+        	lb   $t5, 0($t0)
         	andi $t5, $t5,0x0F 	# convertimos $t3 de ascii a un int
-        	print_int ($t5)
-        	print_str (" hasta 0")
-        	add $t0, $t0, 2  	# Obtenemos la hora final
-        	lb  $t6, 0($t0)
+
+        	add  $t0, $t0, 2  	# Obtenemos la hora final
+        	lb   $t6, 0($t0)
         	andi $t6, $t6,0x0F 	# convertimos $t3 de ascii a un int
-        	print_int ($t6)
-        	print_str ("\n")
+
+		sub $t0, $t0, 4 
         	verificarSiHayConflicto($t2, %horario, %horConflictos, 'L', %numCurso, $t5, $t6)
         	j continue
         
@@ -151,3 +155,4 @@ agregar:	mul $s1, $s1, 2
 		add $s0, $s0, 1
 		sb  $s3, 0($s0)
 .end_macro
+

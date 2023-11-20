@@ -32,7 +32,7 @@ text:	.asciiz %str
 # Macro para imprimir un space de ascii
 # %buffer: Label que se quiere imprimir
 # %start: A partir de qué byte de %buffer se va a imprimir
-# %length: Cuántos carácteres se quieren imprimir
+# %length: Cuántos caracteres se quieren imprimir
 .macro print_space(%buffer, %start, %length)
     .data
     buffer_str: .space %length  # Ajustar el tamaño según tus necesidades
@@ -63,57 +63,3 @@ text:	.asciiz %str
 	syscall
 .end_macro
 
-# Macro para leer qué tecla presionó el usuario
-# Y poder realizar una acción dependiendo de la tecla presionada
-# Ejemplo de uso: readKey()
-.macro readKey()
-	.data
-	key: 	.space 2  # Aquí se guarda la tecla presionada
-	 	.ascii "\0"
-	 	.align 0
-	w:	.asciiz "w"
-	s:	.asciiz "s"
-	a:	.asciiz "a"
-	d:	.asciiz "d"
-	x: 	.asciiz "x"
-
-	.text
-		# Se lee la tecla que presionó el usuario
-		li  $v0, 8
-		la  $a0, key
-		li  $a1, 2
-		syscall
-		print_str ("\n") # Se imprime un salto de línea
-
-		# Se compara la tecla presionada con las teclas válidas
-		lb  $t0, key
-		lb  $t1, w
-		beq $t0, $t1, wKey
-		lb  $t1, s
-		beq $t0, $t1, sKey
-		lb  $t1, a
-		beq $t0, $t1, aKey
-		lb  $t1, d
-		beq $t0, $t1, dKey
-		lb  $t1, x
-		beq $t0, $t1, xKey
-		print_str ("Tecla inválida")
-		j end
-
-	wKey:	print_str ("Se presionó w")
-		j end
-
-	sKey:	print_str ("Se presionó s")
-		j end
-
-	aKey:	print_str ("Se presionó a")
-		j end
-
-	dKey:	print_str ("Se presionó d")
-		j end
-
-	xKey:	print_str ("Cerrando agenda.")
-		done
-
-	end:
-.end_macro
