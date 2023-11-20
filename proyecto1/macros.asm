@@ -57,6 +57,12 @@ text:	.asciiz %str
     syscall
 .end_macro
 
+# Terminar la ejecución del programa
+.macro 	done
+	li $v0,10
+	syscall
+.end_macro
+
 # Macro para leer qué tecla presionó el usuario
 # Y poder realizar una acción dependiendo de la tecla presionada
 # Ejemplo de uso: readKey()
@@ -112,74 +118,8 @@ text:	.asciiz %str
 	end:
 .end_macro
 
-# Macro para hacer un bucle for genérico
-# El bucle for tiene 4 parámetros, %regIterator es el registro que itera
-# desde %from hasta %to, y en cada iteración se ejecuta %bodyMacroName, que a
-# su vez es un macro
-.macro 	for (%regIterator, %from, %to, %bodyMacroName)
-	add %regIterator, $zero, %from
-	Loop:
-	%bodyMacroName ()
-	add %regIterator, %regIterator, 1
-	ble %regIterator, %to, Loop
-.end_macro
 
-# Ejemplo del ciclo for en acción para imprimir los números
-# del 1 al 10
-# Macro para imprimir el iterador
-# .macro 	print_iterator()
-# 	print_int $t0
-#	print_str "\n"
-# .end_macro
-
-# Imprimir los números del 1 al 10
-# for ($t0, 1, 10, print_iterator)
-
-# Terminar la ejecución del programa
-.macro 	done
-	li $v0,10
-	syscall
-.end_macro
-
-
-# LEER Datos de un CN
-
-# Macro para leer un atributo de un CiN
-# %dest: Registro o dirección donde se almacenará la cadena
-# %src: Direccián de la cadena a copiar
-# %start: Posición de inicio en la cadena
-# %length: Longitud de la cadena a copiar
-.macro leerC(%dest, %destStart, %src, %srcStart, %length)
-    .data
-    buffer: .space %length
-    .text
-
-    # Copiar el contenido
-    la  $t0, %src
-    la  $t1, buffer
-    li  $t2, %length
-    add $t0, $t0, %srcStart  # Mover al inicio especificado
-    loop_copy:
-        lb   $t3, 0($t0)
-        sb   $t3, 0($t1)
-        addi $t0, $t0, 1
-        addi $t1, $t1, 1
-        subi $t2, $t2, 1
-        bnez $t2, loop_copy
-
-    # Copiar el contenido al destino
-    la  $t0, %dest
-    la  $t1, buffer
-    li  $t2, %length
-    add $t0, $t0, %destStart  # Mover al inicio especificado
-    loop_copy_dest:
-        lb   $t3, 0($t1)
-        sb   $t3, 0($t0)
-        addi $t0, $t0, 1
-        addi $t1, $t1, 1
-        subi $t2, $t2, 1
-        bnez $t2, loop_copy_dest
-.end_macro
+# Leer datos de un CN
 
 # Macro para leer el COD-### de un CN
 .macro leerCOD(%CN)
@@ -196,7 +136,21 @@ text:	.asciiz %str
 	print_space (%CN, 16, 40)
 .end_macro
 
-.macro agregarCursoAlHorario(%CH, %numCurso, %lun, %mar, %mie, %jue, %vie, %sab)
+# Macros para crear el horario
+
+# Macro para inicializar todos los 96 caracteres de un horario a '-'
+.macro inicializarHorario(%horario)
+		la  $t0, %horario
+		li  $t1, '-'
+		li  $t2, 96
+
+ponerChar:	sb  $t1, 0($t0)
+		add $t0, $t0, 1
+		sub $t2, $t2, 1
+		bnez $t2, ponerChar
+.end_macro
+
+.macro agregarCursoAlHorario(%CH, %numCurso, %horario, %horConflictos)
 	.data
 	T:	.asciiz "T"
 	L:	.asciiz "L"
@@ -229,23 +183,7 @@ text:	.asciiz %str
         	print_int ($t6)
         	print_str ("\n")
         	sub $t0, $t0, 4 
-        	beq $t2, 0, teoLun
-		beq $t2, 1, teoMar
-		beq $t2, 2, teoMie
-		beq $t2, 3, teoJue
-		beq $t2, 4, teoVie
-		beq $t2, 5, teoSab
-teoLun:        	agregarClase(%lun, 'T', %numCurso, $t5, $t6)
-		j continue
-teoMar:        	agregarClase(%mar, 'T', %numCurso, $t5, $t6)
-		j continue
-teoMie:        	agregarClase(%mie, 'T', %numCurso, $t5, $t6)
-		j continue
-teoJue:        	agregarClase(%jue, 'T', %numCurso, $t5, $t6)
-		j continue
-teoVie:		agregarClase(%vie, 'T', %numCurso, $t5, $t6)
-		j continue
-teoSab:		agregarClase(%sab, 'T', %numCurso, $t5, $t6)
+		agregarClase($t2, %horario, %horConflictos, 'T', %numCurso, $t5, $t6)
         	j continue
         
         lab: 	# Agregamos en el día $t2 la clase L%numCurso
@@ -262,24 +200,7 @@ teoSab:		agregarClase(%sab, 'T', %numCurso, $t5, $t6)
         	andi $t6, $t6,0x0F 	# convertimos $t3 de ascii a un int
         	print_int ($t6)
         	print_str ("\n")
-        	sub $t0, $t0, 4 
-        	beq $t2, 0, labLun
-		beq $t2, 1, labMar
-		beq $t2, 2, labMie
-		beq $t2, 3, labJue
-		beq $t2, 4, labVie
-		beq $t2, 5, labSab
-labLun:        	agregarClase(%lun, 'L', %numCurso, $t5, $t6)
-		j continue
-labMar:        	agregarClase(%mar, 'L', %numCurso, $t5, $t6)
-		j continue
-labMie:        	agregarClase(%mie, 'L', %numCurso, $t5, $t6)
-		j continue
-labJue:        	agregarClase(%jue, 'L', %numCurso, $t5, $t6)
-		j continue
-labVie:		agregarClase(%vie, 'L', %numCurso, $t5, $t6)
-		j continue
-labSab:		agregarClase(%sab, 'L', %numCurso, $t5, $t6)
+        	agregarClase($t2, %horario, %horConflictos, 'L', %numCurso, $t5, $t6)
         	j continue
         
         siguienteDia: 	add $t0, $t0, 5
@@ -288,35 +209,40 @@ labSab:		agregarClase(%sab, 'L', %numCurso, $t5, $t6)
         end:
 .end_macro
 
-.macro agregarClase(%dia, %tipo, %numCurso, %horIni, %horFin)
-	.data
-	.text
-	la  $s0, %dia
-	li  $s2, %tipo
-	li  $s3, %numCurso
-	add $s1, $zero, %horIni
-	add $s4, $zero, %horFin
-	sub $s4, $s4, $s1  # %horFin - %horIni
-	add $s4, $s4, 1
-	li  $s5, 0
+.macro agregarClase(%dia, %horario, %horConflictos, %tipo, %numCurso, %horIni, %horFin)
+		jal obtenerDia
+		li  $s2, %tipo
+		li  $s3, %numCurso
+		add $s1, $zero, %horIni
+		add $s4, $zero, %horFin
+		sub $s4, $s4, $s1  # %horFin - %horIni
+		add $s4, $s4, 1
+		li  $s5, 0
 
-agregar:mul $s1, $s1, 2
-	sub $s1, $s1, 1
-	sub $s1, $s1, 1
-	add $s0, $s0, $s1
-	sb  $s2, 0($s0)
-	add $s0, $s0, 1
-	sb  $s3, 0($s0)
-	add $s1, $zero, %horIni
-	add $s1, $s1, $s5
-	sub $s4, $s4, 1
-	bnez $s4, siguiente
-	j end
+agregar:	mul $s1, $s1, 2
+		sub $s1, $s1, 1
+		sub $s1, $s1, 1
+		add $s0, $s0, $s1
+		sb  $s2, 0($s0)
+		add $s0, $s0, 1
+		sb  $s3, 0($s0)
+		add $s1, $zero, %horIni
+		add $s1, $s1, $s5
+		sub $s4, $s4, 1
+		bnez $s4, siguiente
+		j end
 
-siguiente: add $s1, $s1, 1
-	   add $s5, $s5, 1
-	   la  $s0, %dia
-	   j agregar
+siguiente:	add $s1, $s1, 1
+	   	add $s5, $s5, 1
+	   	jal obtenerDia
+	   	j agregar
+	   
+obtenerDia:	la  $s0, %horario
+		add $s7, $zero, %dia
+		mul $s7, $s7, 16
+		add $s0, $s0, $s7
+		jr $ra
 
 end:
 .end_macro
+
