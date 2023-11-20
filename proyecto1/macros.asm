@@ -33,7 +33,7 @@ text:	.asciiz %str
 # %buffer: Label que se quiere imprimir
 # %start: A partir de qué byte de %buffer se va a imprimir
 # %length: Cuántos caracteres se quieren imprimir
-.macro print_space(%buffer, %start, %length)
+.macro print_space (%buffer, %start, %length)
     .data
     buffer_str: .space %length  # Ajustar el tamaño según tus necesidades
     .text
