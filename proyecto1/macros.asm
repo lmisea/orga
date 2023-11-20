@@ -196,7 +196,7 @@ text:	.asciiz %str
 	print_space (%CN, 16, 40)
 .end_macro
 
-.macro agregarCursoAlHorario(%CN, %CH, %numCurso, %lun, %mar, %mie, %jue, %vie, %sab)
+.macro agregarCursoAlHorario(%CH, %numCurso, %lun, %mar, %mie, %jue, %vie, %sab)
 	.data
 	T:	.asciiz "T"
 	L:	.asciiz "L"
@@ -219,16 +219,33 @@ text:	.asciiz %str
         	print_int ($t2)
         	print_str (", desde 0")
         	add $t0, $t0, 2  	# Obtenemos la hora inicial
-        	lb  $t3, 0($t0)
-        	andi $t3, $t3,0x0F 	# convertimos $t3 de ascii a un int
-        	print_int ($t3)
+        	lb  $t5, 0($t0)
+        	andi $t5, $t5,0x0F 	# convertimos $t3 de ascii a un int
+        	print_int ($t5)
         	print_str (" hasta 0")
         	add $t0, $t0, 2  	# Obtenemos la hora final
-        	lb  $t3, 0($t0)
-        	andi $t3, $t3,0x0F 	# convertimos $t3 de ascii a un int
-        	print_int ($t3)
+        	lb  $t6, 0($t0)
+        	andi $t6, $t6,0x0F 	# convertimos $t3 de ascii a un int
+        	print_int ($t6)
         	print_str ("\n")
         	sub $t0, $t0, 4 
+        	beq $t2, 0, teoLun
+		beq $t2, 1, teoMar
+		beq $t2, 2, teoMie
+		beq $t2, 3, teoJue
+		beq $t2, 4, teoVie
+		beq $t2, 5, teoSab
+teoLun:        	agregarClase(%lun, 'T', %numCurso, $t5, $t6)
+		j continue
+teoMar:        	agregarClase(%mar, 'T', %numCurso, $t5, $t6)
+		j continue
+teoMie:        	agregarClase(%mie, 'T', %numCurso, $t5, $t6)
+		j continue
+teoJue:        	agregarClase(%jue, 'T', %numCurso, $t5, $t6)
+		j continue
+teoVie:		agregarClase(%vie, 'T', %numCurso, $t5, $t6)
+		j continue
+teoSab:		agregarClase(%sab, 'T', %numCurso, $t5, $t6)
         	j continue
         
         lab: 	# Agregamos en el día $t2 la clase L%numCurso
@@ -236,20 +253,70 @@ text:	.asciiz %str
         	print_int ($t2)
         	print_str (", desde 0")
         	add $t0, $t0, 2  	# Obtenemos la hora inicial
-        	lb  $t3, 0($t0)
-        	andi $t3, $t3,0x0F 	# convertimos $t3 de ascii a un int
-        	print_int ($t3)
+        	lb  $t5, 0($t0)
+        	andi $t5, $t5,0x0F 	# convertimos $t3 de ascii a un int
+        	print_int ($t5)
         	print_str (" hasta 0")
         	add $t0, $t0, 2  	# Obtenemos la hora final
-        	lb  $t3, 0($t0)
-        	andi $t3, $t3,0x0F 	# convertimos $t3 de ascii a un int
-        	print_int ($t3)
+        	lb  $t6, 0($t0)
+        	andi $t6, $t6,0x0F 	# convertimos $t3 de ascii a un int
+        	print_int ($t6)
         	print_str ("\n")
         	sub $t0, $t0, 4 
+        	beq $t2, 0, labLun
+		beq $t2, 1, labMar
+		beq $t2, 2, labMie
+		beq $t2, 3, labJue
+		beq $t2, 4, labVie
+		beq $t2, 5, labSab
+labLun:        	agregarClase(%lun, 'L', %numCurso, $t5, $t6)
+		j continue
+labMar:        	agregarClase(%mar, 'L', %numCurso, $t5, $t6)
+		j continue
+labMie:        	agregarClase(%mie, 'L', %numCurso, $t5, $t6)
+		j continue
+labJue:        	agregarClase(%jue, 'L', %numCurso, $t5, $t6)
+		j continue
+labVie:		agregarClase(%vie, 'L', %numCurso, $t5, $t6)
+		j continue
+labSab:		agregarClase(%sab, 'L', %numCurso, $t5, $t6)
         	j continue
         
         siguienteDia: 	add $t0, $t0, 5
         		j verificar
         
         end:
+.end_macro
+
+.macro agregarClase(%dia, %tipo, %numCurso, %horIni, %horFin)
+	.data
+	.text
+	la  $s0, %dia
+	li  $s2, %tipo
+	li  $s3, %numCurso
+	add $s1, $zero, %horIni
+	add $s4, $zero, %horFin
+	sub $s4, $s4, $s1  # %horFin - %horIni
+	add $s4, $s4, 1
+	li  $s5, 0
+
+agregar:mul $s1, $s1, 2
+	sub $s1, $s1, 1
+	sub $s1, $s1, 1
+	add $s0, $s0, $s1
+	sb  $s2, 0($s0)
+	add $s0, $s0, 1
+	sb  $s3, 0($s0)
+	add $s1, $zero, %horIni
+	add $s1, $s1, $s5
+	sub $s4, $s4, 1
+	bnez $s4, siguiente
+	j end
+
+siguiente: add $s1, $s1, 1
+	   add $s5, $s5, 1
+	   la  $s0, %dia
+	   j agregar
+
+end:
 .end_macro
