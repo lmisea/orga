@@ -7,8 +7,10 @@
 #      19-10175       #
 #######################
 
-.include "macros.asm"
+.include "cn.asm"
+.include "cursos.asm"
 .include "horario.asm"
+.include "macros.asm"
 
 .data
 newline: 	.asciiz "\n"
