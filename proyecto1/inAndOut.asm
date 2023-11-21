@@ -65,41 +65,126 @@
 .end_macro
 
 .macro imprimir_bloque_de_horario (%horario, %hor_conflictos, %dia, %hora)
-	.data
-	horizontal_line:.asciiz "---------------------------------------\n"
-	second_line:	.asciiz "|                                     |^\n"
-	third_line:	.asciiz "|                                     |W\n"
-	fourth_line:	.asciiz "|                                     |S\n"
-	fifth_line:	.asciiz "|                                     |v\n"
-	left_and_right: .asciiz "<-A | D->\n"
-	hyphen: 	.asciiz "–"
+		.data
+			horizontal_line:.asciiz "---------------------------------------\n"
+			second_line:	.asciiz "|                                     |^\n"
+			third_line:	.asciiz "|                                     |W\n"
+			fourth_line:	.asciiz "|                                     |S\n"
+			fifth_line:	.asciiz "|                                     |v\n"
+			left_and_right: .asciiz "<-A | D->\n"
 	
-	L:		.asciiz "Lunes"
-	M:		.asciiz "Martes"
-	Mi:		.asciiz "Miercoles"
-	J:		.asciiz "Jueves"
-	V:		.asciiz "Viernes"
-	S:		.asciiz "Sabado"
+			Lu:		.asciiz "Lunes"
+			Ma:		.asciiz "Martes"
+			Mi:		.asciiz "Miercoles"
+			Ju:		.asciiz "Jueves"
+			Vi:		.asciiz "Viernes"
+			Sa:		.asciiz "Sabado"
+			
+			T:		.asciiz "T"
+			L:		.asciiz "L"
+			
+			Li:		.asciiz "Libre"
+		.text
+			la  $t0, %horario
+			la  $t1, %hor_conflictos
+			add $t2, $zero, %dia
+			li  $t3, %hora
 	
-	.text
-	la  $t0, %horario
-	la  $t1, %hor_conflictos
-	add $t2, $zero, %dia
-	add $t3, $zero, %hora
+			# Segunda línea
+			
+			la  $t4, second_line
+			add $t4, $t4, 1
+	
+			beq $t2, 0, lun
+			beq $t2, 1, mar
+			beq $t2, 2, mie
+			beq $t2, 3, jue
+			beq $t2, 4, vie
+			beq $t2, 5, sab
+	
+lun: 			li $t5, 5
+			la $t6, Lu
+			j agregar_dia
+
+mar: 			li $t5, 6
+			la $t6, Ma
+			j agregar_dia
+
+mie: 			li $t5, 9
+			la $t6, Mi
+			j agregar_dia
+			
+jue: 			li $t5, 6
+			la $t6, Ju
+			j agregar_dia
+			
+vie: 			li $t5, 7
+			la $t6, Vi
+			j agregar_dia
+			
+sab: 			li $t5, 6
+			la $t6, Sa
+			j agregar_dia
+
+agregar_dia:	 	lb   $t7, 0($t6)
+			sb   $t7, 0($t4)
+			add  $t4, $t4, 1
+			add  $t6, $t6, 1
+			sub  $t5, $t5, 1
+			bnez $t5, agregar_dia
+			
+agregar_hora:		add  $t4, $t4, 1
+			li   $t7, '0'
+			sb   $t7, 0($t4)
+			add  $t4, $t4, 1
+			sb   $t3, 0($t4)
+			add  $t4, $t4, 2
+			li   $t5, '-'
+			sb   $t5, 0($t4)
+			add  $t4, $t4, 2
+			li   $t7, '0'
+			sb   $t7, 0($t4)
+			add  $t4, $t4, 1
+			sb   $t3, 0($t4)
+			
+			# Cuarta línea
+			
+revisar_horario:        la   $s0, %horario
+			mul  $t2, $t2, 16
+			add  $s0, $s0, $t2
+			andi $t3, $t3,0x0F 	# convertimos $t3 de ascii a un int
+			mul  $t3, $t3, 2
+			sub  $t3, $t3, 1
+			sub  $t3, $t3, 1
+			add  $s0, $s0, $t3
+			lb   $t5, 0($s0)
+			lb   $t6, T
+			beq  $t5, $t6, hay_una_clase
+			lb   $t6, L
+			beq  $t5, $t6, hay_una_clase
+			b hora_libre
+			
+hay_una_clase:		print_str ("Hay clase")
+			j imprimir
+			
+hora_libre:		la  $s1, fourth_line
+			add $s1, $s1, 10
+			la  $s2, Li
+			li  $s3, 5	
+			
+escribir_libre:		lb   $s4, 0($s2)
+			sb   $s4, 0($s1)
+			add  $s1, $s1, 1
+			add  $s2, $s2, 1
+			sub  $s3, $s3, 1
+			bnez $s3, escribir_libre
+			j imprimir
 	 
-	print_space (horizontal_line, 0, 40)
-	print_space (second_line, 0, 41)
-	
-	#beq $t2, 0, lun
-	#beq $t2, 1, mar
-	#beq $t2, 2, mie
-	#beq $t2, 3, jue
-	#beq $t2, 4, vie
-	#beq $t2, 5, sab
-	
-	print_space (third_line, 0, 41)
-	print_space (fourth_line, 0, 41)
-	print_space (fifth_line, 0, 41)
-	print_space (horizontal_line, 0, 40)
-	print_space (left_and_right, 0, 10)
+imprimir:		print_space (horizontal_line, 0, 40)
+			print_space (second_line, 0, 41)
+			print_space (third_line, 0, 41)
+			print_space (fourth_line, 0, 41)
+			print_space (fifth_line, 0, 41)
+			print_space (horizontal_line, 0, 40)
+			print_space (left_and_right, 0, 10)
 .end_macro 

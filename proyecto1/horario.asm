@@ -55,11 +55,11 @@ continue:  	add  $t2, $t2, 1
 teoria: 	# Agregamos en el día $t2 la clase T%num_curso
         	add  $t0, $t0, 2  	# Obtenemos la hora inicial
         	lb   $t5, 0($t0)
-        	andi $t5, $t5,0x0F 	# convertimos $t3 de ascii a un int
+        	andi $t5, $t5,0x0F 	# convertimos $t5 de ascii a un int
         	
         	add  $t0, $t0, 2  	# Obtenemos la hora final
         	lb   $t6, 0($t0)
-        	andi $t6, $t6,0x0F 	# convertimos $t3 de ascii a un int
+        	andi $t6, $t6,0x0F 	# convertimos $t6 de ascii a un int
 
         	sub $t0, $t0, 4 
 		verificar_si_hay_conflicto ($t2, %horario, %hor_conflictos, 'T', %num_curso, $t5, $t6)
@@ -68,11 +68,11 @@ teoria: 	# Agregamos en el día $t2 la clase T%num_curso
 lab: 		# Agregamos en el día $t2 la clase L%numCurso
         	add  $t0, $t0, 2  	# Obtenemos la hora inicial
         	lb   $t5, 0($t0)
-        	andi $t5, $t5,0x0F 	# convertimos $t3 de ascii a un int
+        	andi $t5, $t5,0x0F 	# convertimos $t5 de ascii a un int
 
         	add  $t0, $t0, 2  	# Obtenemos la hora final
         	lb   $t6, 0($t0)
-        	andi $t6, $t6,0x0F 	# convertimos $t3 de ascii a un int
+        	andi $t6, $t6,0x0F 	# convertimos $t6 de ascii a un int
 
 		sub $t0, $t0, 4 
         	verificar_si_hay_conflicto ($t2, %horario, %hor_conflictos, 'L', %num_curso, $t5, $t6)
@@ -122,7 +122,7 @@ obtener_dia:		la  $s0, %horario
 			add $s7, $zero, %dia
 			mul $s7, $s7, 16
 			add $s0, $s0, $s7
-			jr $ra
+			jr  $ra
 		
 no_hay_conflicto:	add $s1, $zero, %hor_ini
 			add $s1, $s1, $s5

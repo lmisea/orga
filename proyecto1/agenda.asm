@@ -24,7 +24,7 @@ hor_conflictos:	.space 96	# Horario donde se guardarán las clases que estén en
 
 .text
 main:	crear_horario_de_clases (horario, hor_conflictos)
-	imprimir_bloque_de_horario (horario, hor_conflictos, 0, 1)
+	imprimir_bloque_de_horario (horario, hor_conflictos, 0, '1')
 	print_str ("\n")
 	print_str ("Lun: ")
 	print_space (horario, 0, 16)
