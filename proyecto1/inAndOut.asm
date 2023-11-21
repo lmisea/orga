@@ -84,6 +84,8 @@
 			L:		.asciiz "L"
 			
 			Li:		.asciiz "Libre"
+			Teo:		.asciiz "Teoria"
+			Lab:		.asciiz "Laboratorio"
 		.text
 			la  $t0, %horario
 			la  $t1, %hor_conflictos
@@ -148,27 +150,144 @@ agregar_hora:		add  $t4, $t4, 1
 			sb   $t3, 0($t4)
 			
 			# Cuarta línea
+			la  $s1, fourth_line
 			
 revisar_horario:        la   $s0, %horario
 			mul  $t2, $t2, 16
 			add  $s0, $s0, $t2
-			andi $t3, $t3,0x0F 	# convertimos $t3 de ascii a un int
+			andi $t3, $t3, 0x0F 	# convertimos $t3 de ascii a un int
 			mul  $t3, $t3, 2
 			sub  $t3, $t3, 1
 			sub  $t3, $t3, 1
 			add  $s0, $s0, $t3
 			lb   $t5, 0($s0)
 			lb   $t6, T
-			beq  $t5, $t6, hay_una_clase
+			beq  $t5, $t6, hay_teoria
 			lb   $t6, L
-			beq  $t5, $t6, hay_una_clase
+			beq  $t5, $t6, hay_lab
 			b hora_libre
 			
-hay_una_clase:		print_str ("Hay clase")
+hay_una_clase:		# Leer el num_curso de la clase
+			add  $s0, $s0, 1
+			lb   $s2, 0($s0)
+			andi $s2, $s2, 0x0F	# convertimos $s2 de ascii a un int
+			li   $t8, 4
+			
+cargar_CN:		beq  $s2, 1, c1
+			beq  $s2, 2, c2
+			beq  $s2, 3, c3
+			beq  $s2, 4, c4
+			beq  $s2, 5, c5
+			beq  $s2, 6, c6
+			beq  $s2, 7, c7
+			beq  $s2, 8, c8
+			
+return:			add  $s1, $s1, 1
+			li   $s4, 7
+			
+escribir_COD:		lb   $s5, 0($s3)
+			sb   $s5, 0($s1)
+			add  $s1, $s1, 1
+			add  $s3, $s3, 1
+			sub  $s4, $s4, 1
+			bnez $s4, escribir_COD
+			
+			add  $s3, $s3, 9
+			li   $s4, 25
+			li   $s6, '\0'
+			li   $s7, ' '
+			sb   $s7, 0($s1)
+			add  $s1, $s1, 1
+			lb   $s5, 0($s3)
+			li   $t9, 0
+			
+escribir_NOM:		bnez $t9, agregar_space_char
+			lb   $s5, 0($s3)
+			beq  $s5, $s6, agregar_space_char
+guardar_char_NOM:	sb   $s5, 0($s1)
+			add  $s1, $s1, 1
+			add  $s3, $s3, 1
+			sub  $s4, $s4, 1
+			bnez $s4, escribir_NOM
+			
+			# Quinta linea
+			
+			la  $s1, fifth_line
+			add $s1, $s1, 1
+			li  $s4, 8
+			li  $t8, 5
+			j cargar_CN
+return_EDF:		add $s3, $s3, 8
+			
+escribir_EDF:		lb   $s5, 0($s3)
+			sb   $s5, 0($s1)
+			add  $s1, $s1, 1
+			add  $s3, $s3, 1
+			sub  $s4, $s4, 1
+			bnez $s4, escribir_EDF
+			jr   $ra
+			
+agregar_space_char:	li   $s5, ' '
+			li   $t9, 1
+			j guardar_char_NOM
+			
+c1:			la  $s3, C1N
+			beq $t8, 4, return
+			j return_EDF
+
+c2:			la  $s3, C2N
+			beq $t8, 4, return
+			j return_EDF
+
+c3:			la  $s3, C3N
+			beq $t8, 4, return
+			j return_EDF
+
+c4:			la  $s3, C4N
+			beq $t8, 4, return
+			j return_EDF
+
+c5:			la  $s3, C5N
+			beq $t8, 4, return
+			j return_EDF
+
+c6:			la  $s3, C6N
+			beq $t8, 4, return
+			j return_EDF
+
+c7:			la  $s3, C7N
+			beq $t8, 4, return
+			j return_EDF
+
+c8:			la  $s3, C8N
+			beq $t8, 4, return
+			j return_EDF
+			
+hay_teoria:		jal hay_una_clase
+			la  $s3, Teo
+			li  $s4, 6
+			
+escribir_Teo:		lb   $s5, 0($s3)
+			sb   $s5, 0($s1)
+			add  $s1, $s1, 1
+			add  $s3, $s3, 1
+			sub  $s4, $s4, 1
+			bnez $s4, escribir_Teo
+			j imprimir
+
+hay_lab:		jal hay_una_clase
+			la  $s3, Lab
+			li  $s4, 11
+			
+escribir_Lab:		lb   $s5, 0($s3)
+			sb   $s5, 0($s1)
+			add  $s1, $s1, 1
+			add  $s3, $s3, 1
+			sub  $s4, $s4, 1
+			bnez $s4, escribir_Lab
 			j imprimir
 			
-hora_libre:		la  $s1, fourth_line
-			add $s1, $s1, 10
+hora_libre:		add $s1, $s1, 10
 			la  $s2, Li
 			li  $s3, 5	
 			
