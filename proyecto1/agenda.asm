@@ -7,7 +7,6 @@
 #      19-10175       #
 #######################
 
-.include "cn.asm"
 .include "cursos.asm"
 .include "horario.asm"
 .include "inAndOut.asm"
@@ -24,37 +23,6 @@ hor_conflictos:	.space 96	# Horario donde se guardarán las clases que estén en
 
 .text
 main:	crear_horario_de_clases (horario, hor_conflictos)
-	imprimir_bloque_de_horario (horario, hor_conflictos, 0, '3')
-	print_str ("\n")
-	print_str ("Lun: ")
-	print_space (horario, 0, 16)
-	print_str ("\n")
-	print_space (hor_conflictos, 0, 16)
-	print_str ("\n")
-	print_str ("Mar: ")
-	print_space (horario, 16, 16)
-	print_str ("\n")
-	print_space (hor_conflictos, 16, 16)
-	print_str ("\n")
-	print_str ("Mie: ")
-	print_space (horario, 32, 16)
-	print_str ("\n")
-	print_space (hor_conflictos, 32, 16)
-	print_str ("\n")
-	print_str ("Jue: ")
-	print_space (horario, 48, 16)
-	print_str ("\n")
-	print_space (hor_conflictos, 48, 16)
-	print_str ("\n")
-	print_str ("Vie: ")
-	print_space (horario, 64, 16)
-	print_str ("\n")
-	print_space (hor_conflictos, 64, 16)
-	print_str ("\n")
-	print_str ("Sab: ")
-	print_space (horario, 80, 16)
-	print_str ("\n")
-	print_space (hor_conflictos, 80, 16)
-	print_str ("\n")
+	imprimir_bloque_de_horario (horario, hor_conflictos, 2, '3')
 	read_key ()
 	done

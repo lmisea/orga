@@ -64,7 +64,12 @@
 	end:
 .end_macro
 
-.macro imprimir_bloque_de_horario (%horario, %hor_conflictos, %dia, %hora)
+.macro imprimir_bloque_de_horario (%hor_normal, %hor_conflictos, %dia, %hora)
+	imprimir_bloque (%hor_normal, %dia, %hora, 'N')
+	imprimir_bloque (%hor_conflictos, %dia, %hora, 'C')
+.end_macro 
+
+.macro imprimir_bloque (%horario, %dia, %hora, %tipo)
 		.data
 			horizontal_line:.asciiz "---------------------------------------\n"
 			second_line:	.asciiz "|                                     |^\n"
@@ -88,7 +93,6 @@
 			Lab:		.asciiz "Laboratorio"
 		.text
 			la  $t0, %horario
-			la  $t1, %hor_conflictos
 			add $t2, $zero, %dia
 			li  $t3, %hora
 	
@@ -288,8 +292,11 @@ escribir_Lab:		lb   $s5, 0($s3)
 			j imprimir
 			
 hora_libre:		add $s1, $s1, 10
+			li  $t1, %tipo
+			li  $t9, 'C'
+			beq $t1, $t9, end
 			la  $s2, Li
-			li  $s3, 5	
+			li  $s3, 5
 			
 escribir_libre:		lb   $s4, 0($s2)
 			sb   $s4, 0($s1)
@@ -306,4 +313,6 @@ imprimir:		print_space (horizontal_line, 0, 40)
 			print_space (fifth_line, 0, 41)
 			print_space (horizontal_line, 0, 40)
 			print_space (left_and_right, 0, 10)
+			print_str ("\n")
+end:
 .end_macro 
