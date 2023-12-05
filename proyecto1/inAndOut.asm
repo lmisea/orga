@@ -12,16 +12,16 @@
 # Macro para leer qué tecla presionó el usuario
 # Y poder realizar una acción dependiendo de la tecla presionada
 # Ejemplo de uso: readKey()
-.macro read_key ()
+.macro read_key (%hor_normal, %hor_conflictos, %dia, %hora)
 	.data
-	key: 	.space  2  # Aquí se guarda la tecla presionada
-	 	.ascii  "\0"
-	 	.align  0
-	w:	.asciiz "w"
-	s:	.asciiz "s"
-	a:	.asciiz "a"
-	d:	.asciiz "d"
-	x: 	.asciiz "x"
+		key: 	.space  2  # Aquí se guarda la tecla presionada
+	 		.ascii  "\0"
+	 		.align  0
+		w:	.asciiz "w"
+		s:	.asciiz "s"
+		a:	.asciiz "a"
+		d:	.asciiz "d"
+		x: 	.asciiz "x"
 
 	.text
 		# Se lee la tecla que presionó el usuario
@@ -30,6 +30,7 @@
 		li  $a1, 2
 		syscall
 		print_str ("\n") # Se imprime un salto de línea
+		add $s1, $zero, %dia
 
 		# Se compara la tecla presionada con las teclas válidas
 		lb  $t0, key
@@ -52,10 +53,14 @@
 	s_key:	print_str ("Se presionó s")
 		j end
 
-	a_key:	print_str ("Se presionó a")
+	a_key:	sub  $a1, $a1, 1
+		move %dia, $a1
+		imprimir_bloque_de_horario (%hor_normal, %hor_conflictos, $a1, %hora)
 		j end
 
-	d_key:	print_str ("Se presionó d")
+	d_key:	add $a1, $a1, 1
+		move %dia, $a1
+		imprimir_bloque_de_horario (%hor_normal, %hor_conflictos, $a1, %hora)
 		j end
 
 	x_key:	print_str ("Cerrando agenda.")
@@ -92,9 +97,9 @@
 			Teo:		.asciiz "Teoria"
 			Lab:		.asciiz "Laboratorio"
 		.text
-			la  $t0, %horario
-			add $t2, $zero, %dia
-			li  $t3, %hora
+			la   $t0, %horario
+			add  $t2, $zero, %dia
+			move $t3, %hora
 	
 			# Segunda línea
 			
