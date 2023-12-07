@@ -10,7 +10,6 @@
 .data
 
 .text
-main: 	refresh
-	refresh
-	refresh
+main: 	draw_court (3, 5, 0, 0)
+	read_key (3, 5, 0, 0, 0, 0, 0)
 	done

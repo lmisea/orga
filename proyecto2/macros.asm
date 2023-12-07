@@ -63,7 +63,7 @@ text:	.asciiz %str
 
 # Macro para hacer una espera de %time milisegundos
 .macro 	sleep (%time)
-	li   $v0, 32 
+	li   $v0, 32
 	move $a0, %time
 	syscall
 .end_macro
