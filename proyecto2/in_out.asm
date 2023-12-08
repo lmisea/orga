@@ -10,7 +10,7 @@
 
 # Macro para leer qué tecla presionó el usuario
 # Y poder realizar una acción dependiendo de la tecla presionada
-.macro read_key (%ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_hit, %previous_touch)
+.macro read_key (%ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn)
 	.data
 		key: 	.space  2  # Aquí se guarda la tecla presionada
 	 		.ascii  "\0"
@@ -31,6 +31,8 @@
 		W:	.asciiz "W"
 		o:	.asciiz "o"
 		O:	.asciiz "O"
+		q:	.asciiz "q"
+		Q:	.asciiz "Q"
 	.text
 		# Se lee la tecla que presionó el usuario
 		li  $v0, 8
@@ -90,34 +92,48 @@
 		lb  $t1, O
 		beq $t0, $t1, o_key
 
+		# Se compueba si la tecla presionada es la tecla 'q'
+		lb  $t1, q
+		beq $t0, $t1, q_key
+		lb  $t1, Q
+		beq $t0, $t1, q_key
+
 		print_str ("Tecla inválida")
 		j end
 
-	d_key:	print_str ("Se presionó d")
-		attempt_player_shot (0, %ball_x, %previous_hit, %previous_touch, %vel_x, %vel_y, %mode)
+	d_key:	li $k0, 0
+		attempt_player_shot ($k0, %ball_x, %previous_bounces, %vel_x, %vel_y, %mode, %turn)
 		j end
 
-	l_key:	print_str ("Se presionó l")
-		attempt_player_shot (1, %ball_x, %previous_hit, %previous_touch, %vel_x, %vel_y, %mode)
+	l_key:	li $k0, 1
+		attempt_player_shot ($k0, %ball_x, %previous_bounces, %vel_x, %vel_y, %mode, %turn)
 		j end
 
-	x_key:	print_str ("Se presionó x")
+	x_key:	li $k0, 0
+		change_mode ($k0, %mode, 1, %turn)
 		j end
 
-	m_key:	print_str ("Se presionó m")
+	m_key:	li $k0, 1
+		change_mode ($k0, %mode, 1, %turn)
 		j end
 
-	s_key:	print_str ("Se presionó s")
+	s_key:	li $k0, 0
+		change_mode ($k0, %mode, 0, %turn)
 		j end
 
-	k_key:	print_str ("Se presionó k")
+	k_key:	li $k0, 1
+		change_mode ($k0, %mode, 0, %turn)
 		j end
 
-	w_key:	print_str ("Se presionó w")
+	w_key:	li $k0, 0
+		change_mode ($k0, %mode, 2, %turn)
 		j end
 
-	o_key:	print_str ("Se presionó o")
+	o_key:	li $k0, 1
+		change_mode ($k0, %mode, 2, %turn)
 		j end
+
+	q_key:	done
 
 	end:
 .end_macro
@@ -125,16 +141,16 @@
 # Macro para realizar un refresh de la pantalla
 .macro refresh_court (%ball_x, %ball_y, %vel_x, %vel_y)
 	get_time
-	move $s6, $a1
+	move $a3, $a1
 
 	draw_court (%ball_x, %ball_y, %vel_x, %vel_y)
 
 	reduce_vel_y (%vel_y)
 
 	get_time
-	sub $s6, $s6, $a1 #tiempo transcurrido
+	sub $a3, $a3, $a1 #tiempo transcurrido
 	li  $t7, 200
-	sub $a0, $t7, $s6 #tiempo restante
+	sub $a0, $t7, $s3 #tiempo restante
 	sleep ($a0)
 .end_macro
 

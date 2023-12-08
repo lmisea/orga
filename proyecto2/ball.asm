@@ -6,13 +6,13 @@
 ########################
 
 # Macro para verificar si la pelota tocó el piso
-.macro verify_ball_touched_court (%ball_y, %vel_y, %previous_touch)
-	beqz %ball_y, touched_court
+.macro verify_ball_bounced (%ball_x, %ball_y, %vel_y, %previous_bounces)
+	beqz %ball_y, bounce
 	j end
 
-	touched_court: 	mul %vel_y, %vel_y, -1
-			add %previous_touch, %previous_touch, 1
-
+	bounce: 	mul %vel_y, %vel_y, -1
+			add %previous_bounce, %previous_bounce, 1
+	
 	end:
 .end_macro
 
@@ -39,23 +39,24 @@
 	j end
 
 	point_for_player_one:
-		new_service (0, %ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_hit, %previous_touch)
+		new_service (0, %ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn)
 		j end
 
 	point_for_player_two:
-		new_service (1, %ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_hit, %previous_touch)
+		new_service (1, %ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn)
 
 	end:
 .end_macro
 
 # Macro para que un jugador intente raquetear la pelota
-.macro attempt_player_shot (%player, %ball_x, %previous_hit, %previous_touch, %vel_x, %vel_y, %mode)
-	# Si %previous_hit > 0, significa que el jugador ya ha raqueteado
-	# en su cancha una vez y no puede volver a raquetear
-	bgtz  %previous_hit, end
-
+.macro attempt_player_shot (%player, %ball_x, %previous_bounces, %vel_x, %vel_y, %mode, %turn)
+	# Si %player es distinto de %turn, significa que el jugador que intentó
+	# raquetear no está en su turno o ya raqueteó una vez y por ende, el
+	# raqueteo no es válido
+	bne %player, %turn, end
+	
 	li  $t3, 1
-	bgt %previous_touch, $t3, end
+	bgt %previous_bounces, $t3, end
 
 	li $t3, 12
 
@@ -71,7 +72,15 @@
 		j end
 
 	shot:	player_shot (%player, %vel_x, %vel_y, %mode)
-		add %previous_hit, %previous_hit, 1
+		beqz %turn, turn_for_p_two
+		j turn_for_p_one
+		
+	turn_for_p_one:
+		move %turn, $zero
+		j end
+	
+	turn_for_p_two:
+		li %turn, 1
 
 	end:
 .end_macro
@@ -79,14 +88,22 @@
 # Macro para calcula la velocidad de la pelota luego de que
 # un jugador la raquete
 # %mode es el modo en el que se raqueetea
+# %mode = 0 para forehand
+# %mode = 1 para underhand
+# %mode = 2 para backhand
 .macro player_shot (%player, %vel_x, %vel_y, %mode)
 	# Se calcula la nueva velocidad en x de la pelota
 	beqz %player, player_one
 	j player_two
 
 	player_one:	li %vel_x, 3
-	player_two:	li %vel_x, -3
+			print_str ("raqueteo p1")
+			j verify_mode
 
+	player_two:	li %vel_x, -3
+			print_str ("raqueteo p2")
+
+verify_mode:
 	# Se calcula la nueva velocidad en y de la pelota
 	beqz %mode, forehand
 
@@ -123,22 +140,34 @@
 	sub %vel_y, %vel_y, 1
 .end_macro
 
+# Macro para cambiar el modo de raquetear la pelota
+.macro change_mode (%player, %mode, %new_mode, %turn)
+	bne %player, %turn, end
+	
+	li %mode, %new_mode
+	
+	end:
+.end_macro
+
 # Macro para empezar un nuevo servicio
-.macro new_service (%player, %ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_hit, %previous_touch)
+.macro new_service (%player, %ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn)
 	li  %ball_y, 5
 	move %vel_x, $zero
 	move %vel_y, $zero
 	move %mode,  $zero
-	move %previous_hit, $zero
-	move %previous_touch, $zero
+	move %previous_bounces, $zero
+	
+	li $t4, %player
 
-	beqz %player, player_one
+	beqz $t4, player_one
 	j player_two
 
 	player_one: 	li %ball_x, 3
+			move %turn, $zero
 			j end
 
-	player_two: 	li %ball_x, 23
+	player_two: 	li %ball_x, 22
+			li %turn, 1
 
 	end:
 .end_macro

@@ -10,10 +10,20 @@
 .data
 
 .text
-main: 	li $s2, 2
-	li $s3, 5
-	li $s4, 0
-	li $s5, 0
-	draw_court ($s2, $s3, $s4, $s5)
-	#read_key (3, 5, 0, 0, 0, 0, 0)
+main: 	# $s1 es el reg para la pos x de la pelota
+	# $s2 es el reg para la pos y de la pelota
+	# $s3 es el reg para la vel en x de la pelota
+	# $s4 es el reg para la vel en y de la pelota
+	# $s5 es el reg para el modo de golpe de la pelota
+	# $s6 es el reg para contar cuantas veces ha rebotado la pelota en el turno
+	# $s7 es el reg para saber a que jugador le toca raquetear
+
+	# El partido empieza con el servicio para el player 1
+	new_service (0, $s1, $s2, $s3, $s4, $s5, $s6, $s7)
+
+	draw_court ($s1, $s2, $s3, $s4)
+	read_key ($s1, $s2, $s3, $s4, $s5, $s6, $s7)
+	draw_court ($s1, $s2, $s3, $s4)
+	read_key ($s1, $s2, $s3, $s4, $s5, $s6, $s7)
+
 	done
