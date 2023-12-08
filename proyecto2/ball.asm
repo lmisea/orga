@@ -11,7 +11,7 @@
 	j end
 
 	bounce: 	mul %vel_y, %vel_y, -1
-			add %previous_bounce, %previous_bounce, 1
+			add %previous_bounces, %previous_bounces, 1
 
 	end:
 .end_macro
@@ -34,8 +34,8 @@
 # Macro para verificar si la pelota salió de la cancha en el eje x
 .macro is_ball_out_of_bounds (%ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service)
 	bltz %ball_x, point_for_player_two
-	li $t4, 24
-	bgt %ball_x, $t4, point_for_player_one
+	li $t1, 24
+	bgt %ball_x, $t1, point_for_player_one
 	j end
 
 	point_for_player_one:
@@ -101,11 +101,9 @@
 	j player_two
 
 	player_one:	li %vel_x, 3
-			print_str ("raqueteo p1")
 			j verify_mode
 
 	player_two:	li %vel_x, -3
-			print_str ("raqueteo p2")
 
 verify_mode:
 	# Se calcula la nueva velocidad en y de la pelota
@@ -119,16 +117,13 @@ verify_mode:
 
 	j end
 
-	forehand: 	print_str ("forehand")
-			li %vel_y, 4
+	forehand: 	li %vel_y, 4
 			j end
 
-	underhand: 	print_str ("underhand")
-			li %vel_y, 3
+	underhand: 	li %vel_y, 3
 			j end
 
-	backhand:	print_str ("backhand")
-			li %vel_y, 0
+	backhand:	li %vel_y, 0
 
 	end:
 .end_macro
@@ -141,7 +136,7 @@ verify_mode:
 
 # Macro para reducir en 1 la velocidad de y
 .macro reduce_vel_y (%vel_y)
-	sub %vel_y, %vel_y, 1
+	sub %vel_y, %vel_y, 2
 .end_macro
 
 # Macro para cambiar el modo de raquetear la pelota
@@ -155,7 +150,7 @@ verify_mode:
 
 # Macro para empezar un nuevo servicio
 .macro new_service (%player, %ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service)
-	li  %ball_y, 5
+	li  %ball_y, 4
 	move %vel_x, $zero
 	move %vel_y, $zero
 	move %mode,  $zero

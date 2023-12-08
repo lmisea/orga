@@ -12,7 +12,7 @@
 # Y poder realizar una acción dependiendo de la tecla presionada
 .macro read_key (%ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service)
 	lui $a2, 0xFFFF
-	li $k1, 10000 	# El número de veces que vamos a verificar si se presionó
+	li $k1, 1000 	# El número de veces que vamos a verificar si se presionó
 			# una tecla o no
 
 	verify:
@@ -132,6 +132,14 @@
 .macro refresh_court (%ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service)
 	get_time ()
 	move $a3, $a1
+	
+	ball_next_pos (%ball_x, %ball_y, %vel_x, %vel_y)
+	
+	is_ball_out_of_bounds (%ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service)
+	
+	verify_ball_bounced (%ball_x, %ball_y, %vel_y, %previous_bounces)
+	
+	verify_ball_touched_net (%ball_x, %ball_y, %vel_x)
 
 	draw_court (%ball_x, %ball_y, %vel_x, %vel_y)
 
@@ -160,38 +168,40 @@
 		seventh_line: .asciiz "            O            \n"
 		eigth_line:   .asciiz "            O            \n"
 		nineth_line:  .asciiz "            O            \n"
-		tenth_line:   .asciiz "OOOOOOOOOOOOOOOOOOOOOOOOO"
+		tenth_line:   .asciiz "OOOOOOOOOOOOOOOOOOOOOOOOO\n"
 	.text
 
 	# Agregamos la pelota a la cancha
 
-	li $t5, 10
+	li $t5, 9
 	beq %ball_y, $t5, primera_lin
 
-	li $t5, 9
+	li $t5, 8
 	beq %ball_y, $t5, segunda_lin
 
-	li $t5, 8
+	li $t5, 7
 	beq %ball_y, $t5, tercera_lin
 
-	li $t5, 7
+	li $t5, 6
 	beq %ball_y, $t5, cuarta_lin
 
-	li $t5, 6
+	li $t5, 5
 	beq %ball_y, $t5, quinta_lin
 
-	li $t5, 5
+	li $t5, 4
 	beq %ball_y, $t5, sexta_lin
 
-	li $t5, 4
+	li $t5, 3
 	beq %ball_y, $t5, septima_lin
 
-	li $t5, 3
+	li $t5, 2
 	beq %ball_y, $t5, octava_lin
 
-	li $t5, 2
+	li $t5, 1
 	beq %ball_y, $t5, novena_lin
 
+	beqz %ball_y, decima_lin
+	
 	j end
 
 	primera_lin:
@@ -228,6 +238,10 @@
 
 	novena_lin:
 		la $t6, nineth_line
+		j draw_ball
+		
+	decima_lin:
+	
 
 	draw_ball:
 		add $t6, $t6, %ball_x
@@ -244,5 +258,10 @@
 		print_space (eigth_line)
 		print_space (nineth_line)
 		print_space (tenth_line)
+	
+	eliminar_pelota:
+		li $t8, ' '
+		sb $t8, 0($t6)
+	
 	end:
 .end_macro

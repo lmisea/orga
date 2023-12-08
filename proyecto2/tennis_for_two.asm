@@ -27,14 +27,13 @@ main: 	# $s1 es el reg para la pos x de la pelota
 	# sacar raquetee la pelota antes de refrescar la pantalla
 	service_start:
 		read_key ($s1, $s2, $s3, $s4, $s5, $s6, $s7, $t9)
-		bgtz $t9, refresh_screen
-		j service_start
+		beqz  $t9, service_start
 
 	# Una vez que se raqueteó la pelota en el servicio, se refresca la pantalla
 	# hasta que la pelota salga del campo y empiece un nuevo servicio
 	refresh_screen:
 		refresh_court ($s1, $s2, $s3, $s4, $s5, $s6, $s7, $t9)
-		bgtz $t9, refresh_screen
-		j service_start
+		beqz $t9, service_start
+		j refresh_screen
 
 	# Se termina el programa cuando el usuario presione 'q' o 'Q'
