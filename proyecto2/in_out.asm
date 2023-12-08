@@ -129,6 +129,8 @@
 
 	draw_court (%ball_x, %ball_y, %vel_x, %vel_y)
 
+	reduce_vel_y (%vel_y)
+
 	get_time
 	sub $s6, $s6, $a1 #tiempo transcurrido
 	li  $t7, 200
@@ -152,6 +154,79 @@
 		nineth_line:  .asciiz "            O            \n"
 		tenth_line:   .asciiz "OOOOOOOOOOOOOOOOOOOOOOOOO\n"
 	.text
+
+	# Agregamos la pelota a la cancha
+
+	li $t5, 10
+	beq %ball_y, $t5, primera_lin
+
+	li $t5, 9
+	beq %ball_y, $t5, segunda_lin
+
+	li $t5, 8
+	beq %ball_y, $t5, tercera_lin
+
+	li $t5, 7
+	beq %ball_y, $t5, cuarta_lin
+
+	li $t5, 6
+	beq %ball_y, $t5, quinta_lin
+
+	li $t5, 5
+	beq %ball_y, $t5, sexta_lin
+
+	li $t5, 4
+	beq %ball_y, $t5, septima_lin
+
+	li $t5, 3
+	beq %ball_y, $t5, octava_lin
+
+	li $t5, 2
+	beq %ball_y, $t5, novena_lin
+
+	j end
+
+	primera_lin:
+		la $t6, first_line
+		j draw_ball
+
+	segunda_lin:
+		la $t6, second_line
+		j draw_ball
+
+	tercera_lin:
+		la $t6, thrid_line
+		j draw_ball
+
+	cuarta_lin:
+		la $t6, fourth_line
+		j draw_ball
+
+	quinta_lin:
+		la $t6, fifth_line
+		j draw_ball
+
+	sexta_lin:
+		la $t6, sixth_line
+		j draw_ball
+
+	septima_lin:
+		la $t6, seventh_line
+		j draw_ball
+
+	octava_lin:
+		la $t6, eigth_line
+		j draw_ball
+
+	novena_lin:
+		la $t6, nineth_line
+
+	draw_ball:
+		add $t6, $t6, %ball_x
+		li $t8, 'O'
+		sb $t8, 0($t6)
+
+	imprimir:
 		print_space (first_line,   0, 26)
 		print_space (second_line,  0, 26)
 		print_space (thrid_line,   0, 26)
@@ -161,4 +236,5 @@
 		print_space (eigth_line,   0, 26)
 		print_space (nineth_line,  0, 26)
 		print_space (tenth_line,   0, 26)
+	end:
 .end_macro

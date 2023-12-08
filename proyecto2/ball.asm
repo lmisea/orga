@@ -18,7 +18,7 @@
 
 # Macro para verificar si la pelota rebotó contra la red
 .macro verify_ball_touched_net (%ball_x, %ball_y, %vel_x)
-	li $t3, 13
+	li $t3, 12
 	beq %ball_x, $t3, verify_height
 	j end
 
@@ -34,7 +34,7 @@
 # Macro para verificar si la pelota salió de la cancha en el eje x
 .macro is_ball_out_of_bounds (%ball_x)
 	bltz %ball_x, point_for_player_two
-	li $t4, 25
+	li $t4, 24
 	bgt %ball_x, $t4, point_for_player_one
 	j end
 
@@ -57,7 +57,7 @@
 	li  $t3, 1
 	bgt %previous_touch, $t3, end
 
-	li $t3, 13
+	li $t3, 12
 
 	beqz %player, verify_ball_in_court_one
 	j verify_ball_in_court_two
@@ -99,12 +99,15 @@
 	j end
 
 	forehand: 	print_str ("forehand")
+			li %vel_y, 4
 			j end
 
 	underhand: 	print_str ("underhand")
+			li %vel_y, 3
 			j end
 
 	backhand:	print_str ("backhand")
+			li %vel_y, 0
 
 	end:
 .end_macro
@@ -125,7 +128,7 @@
 	li  %ball_y, 5
 	move %vel_x, $zero
 	move %vel_y, $zero
-	move %mode, $zero
+	move %mode,  $zero
 	move %previous_hit, $zero
 	move %previous_touch, $zero
 
