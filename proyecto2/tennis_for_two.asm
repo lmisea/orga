@@ -17,13 +17,19 @@ main: 	# $s1 es el reg para la pos x de la pelota
 	# $s5 es el reg para el modo de golpe de la pelota
 	# $s6 es el reg para contar cuantas veces ha rebotado la pelota en el turno
 	# $s7 es el reg para saber a que jugador le toca raquetear
+	# $t9 es el reg para marcar si se está al inicio de un servicio o no
 
 	# El partido empieza con el servicio para el player 1
-	new_service (0, $s1, $s2, $s3, $s4, $s5, $s6, $s7)
+	new_service (0, $s1, $s2, $s3, $s4, $s5, $s6, $s7, $t9)
+	draw_court ($s1, $s2, $s3, $s4)
+	
+	read:
+		read_key ($s1, $s2, $s3, $s4, $s5, $s6, $s7, $t9)
+		bgtz $t9, refresh_screen
+		j read
 
-	draw_court ($s1, $s2, $s3, $s4)
-	read_key ($s1, $s2, $s3, $s4, $s5, $s6, $s7)
-	draw_court ($s1, $s2, $s3, $s4)
-	read_key ($s1, $s2, $s3, $s4, $s5, $s6, $s7)
+	refresh_screen:
+		draw_court ($s1, $s2, $s3, $s4)
+		read_key ($s1, $s2, $s3, $s4, $s5, $s6, $s7, $t9)
 
 	done

@@ -32,18 +32,18 @@
 .end_macro
 
 # Macro para verificar si la pelota salió de la cancha en el eje x
-.macro is_ball_out_of_bounds (%ball_x)
+.macro is_ball_out_of_bounds (%ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service)
 	bltz %ball_x, point_for_player_two
 	li $t4, 24
 	bgt %ball_x, $t4, point_for_player_one
 	j end
 
 	point_for_player_one:
-		new_service (0, %ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn)
+		new_service (0, %ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service)
 		j end
 
 	point_for_player_two:
-		new_service (1, %ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn)
+		new_service (1, %ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service)
 
 	end:
 .end_macro
@@ -107,11 +107,11 @@ verify_mode:
 	# Se calcula la nueva velocidad en y de la pelota
 	beqz %mode, forehand
 
-	li  $t2, 1
-	beq %mode, $t2, underhand
+	li  $t1, 1
+	beq %mode, $t1, underhand
 
-	li  $t2, 2
-	beq %mode, $t2, backhand
+	li  $t1, 2
+	beq %mode, $t1, backhand
 
 	j end
 
@@ -150,12 +150,13 @@ verify_mode:
 .end_macro
 
 # Macro para empezar un nuevo servicio
-.macro new_service (%player, %ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn)
+.macro new_service (%player, %ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service)
 	li  %ball_y, 5
 	move %vel_x, $zero
 	move %vel_y, $zero
 	move %mode,  $zero
 	move %previous_bounces, $zero
+	move %service, $zero
 	
 	li $t4, %player
 
