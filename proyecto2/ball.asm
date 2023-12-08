@@ -12,7 +12,7 @@
 
 	bounce: 	mul %vel_y, %vel_y, -1
 			add %previous_bounce, %previous_bounce, 1
-	
+
 	end:
 .end_macro
 
@@ -49,12 +49,12 @@
 .end_macro
 
 # Macro para que un jugador intente raquetear la pelota
-.macro attempt_player_shot (%player, %ball_x, %previous_bounces, %vel_x, %vel_y, %mode, %turn)
+.macro attempt_player_shot (%player, %ball_x, %previous_bounces, %vel_x, %vel_y, %mode, %turn, %service)
 	# Si %player es distinto de %turn, significa que el jugador que intentó
 	# raquetear no está en su turno o ya raqueteó una vez y por ende, el
 	# raqueteo no es válido
 	bne %player, %turn, end
-	
+
 	li  $t3, 1
 	bgt %previous_bounces, $t3, end
 
@@ -71,14 +71,18 @@
 		bgt %ball_x, $t3, shot
 		j end
 
-	shot:	player_shot (%player, %vel_x, %vel_y, %mode)
+	shot:	print_str ("\n")
+		player_shot (%player, %vel_x, %vel_y, %mode)
+		# Se marca que ya no se está al principio de un servicio
+		li %service, 1
+		# Se cambia el turno
 		beqz %turn, turn_for_p_two
 		j turn_for_p_one
-		
+
 	turn_for_p_one:
 		move %turn, $zero
 		j end
-	
+
 	turn_for_p_two:
 		li %turn, 1
 
@@ -143,9 +147,9 @@ verify_mode:
 # Macro para cambiar el modo de raquetear la pelota
 .macro change_mode (%player, %mode, %new_mode, %turn)
 	bne %player, %turn, end
-	
+
 	li %mode, %new_mode
-	
+
 	end:
 .end_macro
 
@@ -157,7 +161,7 @@ verify_mode:
 	move %mode,  $zero
 	move %previous_bounces, $zero
 	move %service, $zero
-	
+
 	li $t4, %player
 
 	beqz $t4, player_one

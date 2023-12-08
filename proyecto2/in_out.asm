@@ -12,7 +12,7 @@
 # Y poder realizar una acción dependiendo de la tecla presionada
 .macro read_key (%ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service)
 	lui $a2, 0xFFFF
-	li $k1, 100000 	# El número de veces que vamos a verificar si se presionó
+	li $k1, 10000 	# El número de veces que vamos a verificar si se presionó
 			# una tecla o no
 
 	verify:
@@ -92,15 +92,11 @@
 		j end
 
 	d_key:	li $t1, 0
-		print_str ("\n") # Se imprime un salto de línea
-		attempt_player_shot ($t1, %ball_x, %previous_bounces, %vel_x, %vel_y, %mode, %turn)
-		li %service, 1
+		attempt_player_shot ($t1, %ball_x, %previous_bounces, %vel_x, %vel_y, %mode, %turn, %service)
 		j end
 
 	l_key:	li $t1, 1
-		print_str ("\n") # Se imprime un salto de línea
-		attempt_player_shot ($t1, %ball_x, %previous_bounces, %vel_x, %vel_y, %mode, %turn)
-		li %service, 1
+		attempt_player_shot ($t1, %ball_x, %previous_bounces, %vel_x, %vel_y, %mode, %turn, %service)
 		j end
 
 	x_key:	li $t1, 0
@@ -127,21 +123,23 @@
 		change_mode ($t1, %mode, 2, %turn)
 		j end
 
-	q_key:	done
+	q_key:	done ()
 
 	end:
 .end_macro
 
 # Macro para realizar un refresh de la pantalla
-.macro refresh_court (%ball_x, %ball_y, %vel_x, %vel_y)
-	get_time
+.macro refresh_court (%ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service)
+	get_time ()
 	move $a3, $a1
 
 	draw_court (%ball_x, %ball_y, %vel_x, %vel_y)
 
 	reduce_vel_y (%vel_y)
+	
+	read_key (%ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service)
 
-	get_time
+	get_time ()
 	sub $a3, $a3, $a1 #tiempo transcurrido
 	li  $t7, 200
 	sub $a0, $t7, $s3 #tiempo restante
@@ -162,7 +160,7 @@
 		seventh_line: .asciiz "            O            \n"
 		eigth_line:   .asciiz "            O            \n"
 		nineth_line:  .asciiz "            O            \n"
-		tenth_line:   .asciiz "OOOOOOOOOOOOOOOOOOOOOOOOO\n"
+		tenth_line:   .asciiz "OOOOOOOOOOOOOOOOOOOOOOOOO"
 	.text
 
 	# Agregamos la pelota a la cancha
@@ -237,14 +235,14 @@
 		sb $t8, 0($t6)
 
 	imprimir:
-		print_space (first_line,   0, 26)
-		print_space (second_line,  0, 26)
-		print_space (thrid_line,   0, 26)
-		print_space (fourth_line,  0, 26)
-		print_space (sixth_line,   0, 26)
-		print_space (seventh_line, 0, 26)
-		print_space (eigth_line,   0, 26)
-		print_space (nineth_line,  0, 26)
-		print_space (tenth_line,   0, 26)
+		print_space (first_line)
+		print_space (second_line)
+		print_space (thrid_line)
+		print_space (fourth_line)
+		print_space (sixth_line)
+		print_space (seventh_line)
+		print_space (eigth_line)
+		print_space (nineth_line)
+		print_space (tenth_line)
 	end:
 .end_macro

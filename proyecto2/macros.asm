@@ -28,30 +28,10 @@ text:	.asciiz %str
 .end_macro
 
 # Macro para imprimir un space de ascii
-# %buffer: Label que se quiere imprimir
-# %start: A partir de qué byte de %buffer se va a imprimir
-# %length: Cuántos caracteres se quieren imprimir
-.macro print_space (%buffer, %start, %length)
-    .data
-    buffer_str: .space %length  # Ajustar el tamaño según tus necesidades
-    .text
-
-    # Copiar el contenido del buffer al espacio reservado
-    la $t0, %buffer
-    la $t1, buffer_str
-    li $t2, %length
-    add $t0, $t0, %start  # Mover al inicio especificado
-    loop_copy:
-        lb $t3, 0($t0)
-        sb $t3, 0($t1)
-        addi $t0, $t0, 1
-        addi $t1, $t1, 1
-        subi $t2, $t2, 1
-        bnez $t2, loop_copy
-
+.macro print_space (%space)
     # Imprimir el contenido del espacio reservado
     li $v0, 4
-    la $a0, buffer_str
+    la $a0, %space
     syscall
 .end_macro
 
