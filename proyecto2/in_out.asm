@@ -15,87 +15,70 @@
 		key: 	.space  2  # Aquí se guarda la tecla presionada
 	 		.ascii  "\0"
 	 		.align  0
-	 	d:	.asciiz "d"
-	 	D:	.asciiz "D"
-	 	ele:	.asciiz "l"
-	 	L:	.asciiz "L"
-		x:	.asciiz "x"
-		X:	.asciiz "X"
-		m:	.asciiz "m"
-		M:	.asciiz "M"
-		s:	.asciiz "s"
-		S:	.asciiz "S"
-		k:	.asciiz "k"
-		K:	.asciiz "K"
-		w:	.asciiz "w"
-		W:	.asciiz "W"
-		o:	.asciiz "o"
-		O:	.asciiz "O"
-		q:	.asciiz "q"
-		Q:	.asciiz "Q"
 	.text
-		# Se lee la tecla que presionó el usuario
-		li  $v0, 8
-		la  $a0, key
-		li  $a1, 2
-		syscall
+		lui $a2, 0xFFFF
+	verify:
+		lw $t9, 0($a2) # Leemos el byte de control
+		andi $t9, $t9, 0x0001
+		beqz $t9, verify # Si el byte de control es 0, no se presionó ninguna tecla
+
 		print_str ("\n") # Se imprime un salto de línea
 
-		# Se compara la tecla presionada con las teclas válidas
-		lb  $t0, key
+		# Leemos la letra que se escribió
+		lw $t0, 4($a2)
 
 		# Se compueba si la tecla presionada es la tecla 'd'
-		lb  $t1, d
+		li  $t1, 'd'
 		beq $t0, $t1, d_key
-		lb  $t1, D
+		li  $t1, 'D'
 		beq $t0, $t1, d_key
 
 		# Se compueba si la tecla presionada es la tecla 'l'
-		lb  $t1, ele
+		li $t1, 'l'
 		beq $t0, $t1, l_key
-		lb  $t1, L
+		li  $t1, 'L'
 		beq $t0, $t1, l_key
 
 		# Se compueba si la tecla presionada es la tecla 'x'
-		lb  $t1, x
+		li  $t1, 'x'
 		beq $t0, $t1, x_key
-		lb  $t1, X
+		li  $t1, 'X'
 		beq $t0, $t1, x_key
 
 		# Se compueba si la tecla presionada es la tecla 'm'
-		lb  $t1, m
+		li  $t1, 'm'
 		beq $t0, $t1, m_key
-		lb  $t1, M
+		li  $t1, 'M'
 		beq $t0, $t1, m_key
 
 		# Se compueba si la tecla presionada es la tecla 's'
-		lb  $t1, s
+		li  $t1, 's'
 		beq $t0, $t1, s_key
-		lb  $t1, S
+		li  $t1, 'S'
 		beq $t0, $t1, s_key
 
 		# Se compueba si la tecla presionada es la tecla 'k'
-		lb  $t1, k
+		li  $t1, 'k'
 		beq $t0, $t1, k_key
-		lb  $t1, K
+		li  $t1, 'K'
 		beq $t0, $t1, k_key
 
 		# Se compueba si la tecla presionada es la tecla 'w'
-		lb  $t1, w
+		li  $t1, 'w'
 		beq $t0, $t1, w_key
-		lb  $t1, w
+		li  $t1, 'W'
 		beq $t0, $t1, w_key
 
 		# Se compueba si la tecla presionada es la tecla 'o'
-		lb  $t1, o
+		li  $t1, 'o'
 		beq $t0, $t1, o_key
-		lb  $t1, O
+		li  $t1, 'O'
 		beq $t0, $t1, o_key
 
 		# Se compueba si la tecla presionada es la tecla 'q'
-		lb  $t1, q
+		li  $t1, 'q'
 		beq $t0, $t1, q_key
-		lb  $t1, Q
+		li  $t1, 'Q'
 		beq $t0, $t1, q_key
 
 		print_str ("Tecla inválida")
