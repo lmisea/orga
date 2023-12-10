@@ -7,7 +7,7 @@
 
 # Macro para verificar si la pelota tocó el piso
 .macro verify_ball_bounced (%ball_x, %ball_y, %vel_y, %previous_bounces)
-	beqz %ball_y, bounce
+	ble %ball_y, $zero, bounce
 	j end
 
 	bounce: 	mul %vel_y, %vel_y, -1
@@ -32,18 +32,18 @@
 .end_macro
 
 # Macro para verificar si la pelota salió de la cancha en el eje x
-.macro is_ball_out_of_bounds (%ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service)
+.macro is_ball_out_of_bounds (%ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service, %estelas)
 	bltz %ball_x, point_for_player_two
 	li $t1, 24
 	bgt %ball_x, $t1, point_for_player_one
 	j end
 
 	point_for_player_one:
-		new_service (0, %ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service)
+		new_service (0, %ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service, %estelas)
 		j end
 
 	point_for_player_two:
-		new_service (1, %ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service)
+		new_service (1, %ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service, %estelas)
 
 	end:
 .end_macro
@@ -136,7 +136,7 @@ verify_mode:
 
 # Macro para reducir en 1 la velocidad de y
 .macro reduce_vel_y (%vel_y)
-	sub %vel_y, %vel_y, 2
+	sub %vel_y, %vel_y, 1
 .end_macro
 
 # Macro para cambiar el modo de raquetear la pelota
@@ -148,8 +148,102 @@ verify_mode:
 	end:
 .end_macro
 
+# Macro para añadir una estela
+.macro add_trail (%ball_x, %ball_y, %estelas)
+	li   $t5, 0
+	add  %estelas, %estelas, 12
+
+	move_to_previous:
+		add  $t5, $t5, 1
+		lb   $t7, 0(%estelas)
+		add  %estelas, %estelas, 4
+		sb   $t7, 0(%estelas)
+		sub  %estelas, %estelas, 3
+		lb   $t7, 0(%estelas)
+		add  %estelas, %estelas, 4
+		sb   $t7, 0(%estelas)
+		sub  %estelas, %estelas, 3
+		lb   $t7, 0(%estelas)
+		add  %estelas, %estelas, 4
+		sb   $t7, 0(%estelas)
+		sub  %estelas, %estelas, 3
+		lb   $t7, 0(%estelas)
+		add  %estelas, %estelas, 4
+		sb   $t7, 0(%estelas)
+		sub  %estelas, %estelas, 7
+		beq  $t5, 4, guardar_estela
+		sub  %estelas, %estelas, 4
+		j move_to_previous
+
+guardar_estela:
+	# Escribimos las coordenadas de x de la posición de la estela
+
+	# Dividimos entre 10 la coordenada x, 'lo' tiene el primer digito y 'hi'
+	# tiene el segundo digito
+	li $t0, 10
+	div %ball_x, $t0
+	mflo $t1
+	mfhi $t3
+
+	int_to_ascii ($t1)
+	int_to_ascii ($t3)
+
+	sb $t1, 0(%estelas)
+	sb $t3, 1(%estelas)
+
+	# Ahora escribimos las coordenadas de y de la posición de la estela
+
+	# Dividimos entre 10 la coordenada y, 'lo' tiene el primer digito y 'hi'
+	# tiene el segundo digito
+	li $t0, 10
+	div %ball_y, $t0
+	mflo $t1
+	mfhi $t3
+
+	int_to_ascii ($t1)
+	int_to_ascii ($t3)
+
+	sb $t1, 2(%estelas)
+	sb $t3, 3(%estelas)
+.end_macro
+
+# Macro para calcular una coordenada de una estela usando %estelas
+.macro calcular_coordenada_estela (%eje, %reg, %estelas)
+	li  $a1, 'x'
+	li  $t1, %eje
+	beq $a1, $t1, eje_x
+
+	li  $a1, 'y'
+	beq $a1, $t1, eje_y
+
+	j end
+
+	eje_x:
+		lb  $t1, 0(%estelas)
+		ascii_to_int ($t1)
+		li  %reg, 10
+		mul %reg, %reg, $t1
+		lb  $t1, 1(%estelas)
+		ascii_to_int ($t1)
+		# En %reg guardamos la posición en x de la estela
+		add %reg, %reg, $t1
+		j end
+
+	eje_y:
+		lb  $t1, 2(%estelas)
+		ascii_to_int ($t1)
+		li  %reg, 10
+		mul %reg, %reg, $t1
+		lb  $t1, 3(%estelas)
+		ascii_to_int ($t1)
+		# En %reg guardamos la posición en y de la estela
+		add %reg, %reg, $t1
+
+	end:
+.end_macro
+
 # Macro para empezar un nuevo servicio
-.macro new_service (%player, %ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service)
+.macro new_service (%player, %ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service, %estelas)
 	li  %ball_y, 4
 	move %vel_x, $zero
 	move %vel_y, $zero
@@ -157,17 +251,28 @@ verify_mode:
 	move %previous_bounces, $zero
 	move %service, $zero
 
-	li $t4, %player
+	li   $a1, 20
 
-	beqz $t4, player_one
+	inicializar_estelas:
+		li   $t1, '-'
+		sb   $t1, 0(%estelas)
+		add  %estelas, %estelas, 1
+		sub  $a1, $a1, 1
+		bnez $a1, inicializar_estelas
+
+	sub  %estelas, %estelas, 20
+
+	li   $t1, %player
+
+	beqz $t1, player_one
 	j player_two
 
-	player_one: 	li %ball_x, 3
+	player_one: 	li %ball_x, 2
 			move %turn, $zero
-			j end
+			j trail
 
 	player_two: 	li %ball_x, 22
 			li %turn, 1
 
-	end:
+	trail: add_trail (%ball_x, %ball_y, %estelas)
 .end_macro
