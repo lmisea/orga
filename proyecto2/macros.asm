@@ -122,3 +122,18 @@ texto:	.asciiz %str
 
 	end:
 .end_macro
+
+# Macro para reescribir una linea de la cancha
+# %line y %new_line deben tener 26 caracteres de longitud
+.macro reescribir_linea (%line, %new_line)
+	li $t8, 0
+	copiar:
+		add $t8, $t8, 1
+		lb  $t1, 0(%new_line)
+		sb  $t1, 0(%line)
+		add %new_line, %new_line, 1
+		add %line, %line, 1
+		blt $t8, 26, copiar
+
+	sub %new_line, %new_line, 26
+.end_macro

@@ -204,27 +204,19 @@ continue:
 # de la pelota
 .macro draw_court (%estelas)
 	.data
-		first_line:   .asciiz "                         \n"
-		second_line:  .asciiz "                         \n"
-		thrid_line:   .asciiz "                         \n"
-		fourth_line:  .asciiz "                         \n"
-		fifth_line:   .asciiz "                         \n"
-		sixth_line:   .asciiz "                         \n"
-		seventh_line: .asciiz "            O            \n"
-		eighth_line:  .asciiz "            O            \n"
-		nineth_line:  .asciiz "            O            \n"
-		tenth_line:   .asciiz "OOOOOOOOOOOOOOOOOOOOOOOOO\n"
+		first_line:   	.asciiz "                         \n"
+		second_line:  	.asciiz "                         \n"
+		third_line:   	.asciiz "                         \n"
+		fourth_line:  	.asciiz "                         \n"
+		fifth_line:   	.asciiz "                         \n"
+		sixth_line:   	.asciiz "                         \n"
+		seventh_line: 	.asciiz "            O            \n"
+		eighth_line:  	.asciiz "            O            \n"
+		ninth_line:  	.asciiz "            O            \n"
+		tenth_line:   	.asciiz "OOOOOOOOOOOOOOOOOOOOOOOOO\n"
 
-		first_copy:   .asciiz "                         \n"
-		second_copy:  .asciiz "                         \n"
-		thrid_copy:   .asciiz "                         \n"
-		fourth_copy:  .asciiz "                         \n"
-		fifth_copy:   .asciiz "                         \n"
-		sixth_copy:   .asciiz "                         \n"
-		seventh_copy: .asciiz "            O            \n"
-		eighth_copy:  .asciiz "            O            \n"
-		nineth_copy:  .asciiz "            O            \n"
-		tenth_copy:   .asciiz "OOOOOOOOOOOOOOOOOOOOOOOOO\n"
+		blank_line:	.asciiz "                         \n"
+		net_line:	.asciiz "            O            \n"
 	.text
 	# En $t3 anotamos el número de estela que estamos dibujando
 	li $t3, 0
@@ -246,8 +238,8 @@ trail:
 	j calcular_linea
 
 	next_trail:
-		blt $t3, 2, add_four
-		sub %estelas, %estelas, 4
+		blt $t3, 5, add_four
+		sub %estelas, %estelas, 16
 		j imprimir
 
 	add_four:
@@ -285,7 +277,8 @@ calcular_linea:
 
 	beqz $t8, calcular_pos_x
 
-	j end
+	# Si no está entre 0 y 9, se salta a la siguiente estela
+	j next_trail
 
 	primera_lin:
 		la $t6, first_line
@@ -296,7 +289,7 @@ calcular_linea:
 		j  calcular_pos_x
 
 	tercera_lin:
-		la $t6, thrid_line
+		la $t6, third_line
 		j  calcular_pos_x
 
 	cuarta_lin:
@@ -320,7 +313,7 @@ calcular_linea:
 		j  calcular_pos_x
 
 	novena_lin:
-		la $t6, nineth_line
+		la $t6, ninth_line
 		j  calcular_pos_x
 
 
@@ -354,26 +347,45 @@ calcular_linea:
 	imprimir:
 		print_space (first_line)
 		print_space (second_line)
-		print_space (thrid_line)
+		print_space (third_line)
 		print_space (fourth_line)
 		print_space (sixth_line)
 		print_space (seventh_line)
 		print_space (eighth_line)
-		print_space (nineth_line)
+		print_space (ninth_line)
 		print_space (tenth_line)
 
 	reiniciar_cancha:
 		la $t3, first_line
-		la $t6, first_copy
+		la $t6, blank_line
+		# Reiniciamos la primera linea para que sea una linea blanca
+		reescribir_linea ($t3, $t6)
 
-		li $t8, 0
-	copiar:
-		add $t8, $t8, 1
-		lb  $t1, 0($t6)
-		sb  $t1, 0($t3)
-		add $t6, $t6, 1
-		add $t3, $t3, 1
-		blt $t8, 26, copiar
+		# Hacemos lo mismo con las demás líneas que deberían ser blancas
+		la $t3, second_line
+		reescribir_linea ($t3, $t6)
 
+		la $t3, third_line
+		reescribir_linea ($t3, $t6)
+
+		la $t3, fourth_line
+		reescribir_linea ($t3, $t6)
+
+		la $t3, fifth_line
+		reescribir_linea ($t3, $t6)
+
+		la $t3, sixth_line
+		reescribir_linea ($t3, $t6)
+
+		# Ahora reiniciamos las lineas en las que aparece la red
+		la $t3, seventh_line
+		la $t6, net_line
+		reescribir_linea ($t3, $t6)
+
+		la $t3, eighth_line
+		reescribir_linea ($t3, $t6)
+
+		la $t3, ninth_line
+		reescribir_linea ($t3, $t6)
 	end:
 .end_macro
