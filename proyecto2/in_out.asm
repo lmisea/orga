@@ -174,12 +174,6 @@
 		j    verificar_estela
 
 continue:
-	print_str ("new x: ")
-	print_int (%ball_x)
-	print_str ("\nnew y: ")
-	print_int (%ball_y)
-	print_str ("\n")
-
 	is_ball_out_of_bounds (%ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service, %estelas)
 
 	verify_ball_bounced (%ball_x, %ball_y, %vel_y, %previous_bounces)
@@ -213,7 +207,7 @@ continue:
 		seventh_line: 	.asciiz "            O            \n"
 		eighth_line:  	.asciiz "            O            \n"
 		ninth_line:  	.asciiz "            O            \n"
-		tenth_line:   	.asciiz "OOOOOOOOOOOOOOOOOOOOOOOOO\n"
+		tenth_line:   	.asciiz "OOOOOOOOOOOOOOOOOOOOOOOOO\n\n"
 
 		blank_line:	.asciiz "                         \n"
 		net_line:	.asciiz "            O            \n"
@@ -231,21 +225,16 @@ trail:
 
 	# La estela existe, asi que calculamos la posición en y de la estela
 	calcular_coordenada_estela ('y', $t8, %estelas) # En $t8 tenemos la posición en y de la estela
-
-	print_str ("y_estela: ")
-	print_int ($t8)
-	print_str ("\n")
 	j calcular_linea
 
 	next_trail:
-		blt $t3, 5, add_four
-		sub %estelas, %estelas, 16
+		blt $t3, 11, add_four
+		sub %estelas, %estelas, 40
 		j imprimir
 
 	add_four:
 		add %estelas, %estelas, 4
 		j   trail
-
 
 calcular_linea:
 	li   $t1, 9
@@ -321,10 +310,10 @@ calcular_linea:
 	calcular_pos_x:
 
 		calcular_coordenada_estela ('x', $t8, %estelas) # En $t8 tenemos la posición en x de la estela
-
-		print_str ("x_estela: ")
-		print_int ($t8)
-		print_str ("\n")
+		
+		# No se dibuja una estela que esté fuera de la cancha
+		bgt  $t8, 24, next_trail
+		bltz $t8, next_trail
 
 		add $t6, $t6, $t8
 
@@ -355,6 +344,8 @@ calcular_linea:
 		print_space (ninth_line)
 		print_space (tenth_line)
 
+	# Reiniciamos la cancha para que no aparezcan pelotas o estelas de impresiones
+	# anteriores cuando se imprima la cancha
 	reiniciar_cancha:
 		la $t3, first_line
 		la $t6, blank_line

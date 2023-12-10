@@ -8,7 +8,7 @@
 .include "in_out.asm"
 
 .data
-	estelas_array: .space 20
+	estelas_array: .space 44
 
 .text
 main: 	# $s1 es el reg para la pos x de la pelota
@@ -30,14 +30,12 @@ main: 	# $s1 es el reg para la pos x de la pelota
 	# Cuando empieza un servicio, se espera hasta que el jugador que le toca
 	# sacar raquetee la pelota antes de refrescar la pantalla
 	service_start:
-		print_space (estelas_array)
 		read_key ($s1, $s2, $s3, $s4, $s5, $s6, $s7, $t4)
 		beqz  $t4, service_start
 
 	# Una vez que se raqueteó la pelota en el servicio, se refresca la pantalla
 	# hasta que la pelota salga del campo y empiece un nuevo servicio
 	refresh_screen:
-		print_space (estelas_array)
 		refresh_court ($s1, $s2, $s3, $s4, $s5, $s6, $s7, $t4, $t9)
 		beqz $t4, service_start
 		j    refresh_screen

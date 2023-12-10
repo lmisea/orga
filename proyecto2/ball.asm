@@ -39,10 +39,12 @@
 	j end
 
 	point_for_player_one:
+		draw_court (%estelas)
 		new_service (0, %ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service, %estelas)
 		j end
 
 	point_for_player_two:
+		draw_court (%estelas)
 		new_service (1, %ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service, %estelas)
 
 	end:
@@ -71,8 +73,7 @@
 		bgt %ball_x, $t3, shot
 		j end
 
-	shot:	print_str ("\n")
-		player_shot (%player, %vel_x, %vel_y, %mode)
+	shot:	player_shot (%player, %vel_x, %vel_y, %mode)
 		# Se marca que ya no se está al principio de un servicio
 		li %service, 1
 		# Se cambia el turno
@@ -151,7 +152,7 @@ verify_mode:
 # Macro para añadir una estela
 .macro add_trail (%ball_x, %ball_y, %estelas)
 	li   $t5, 0
-	add  %estelas, %estelas, 12
+	add  %estelas, %estelas, 36
 
 	move_to_previous:
 		add  $t5, $t5, 1
@@ -171,7 +172,7 @@ verify_mode:
 		add  %estelas, %estelas, 4
 		sb   $t7, 0(%estelas)
 		sub  %estelas, %estelas, 7
-		beq  $t5, 4, guardar_estela
+		beq  $t5, 10, guardar_estela
 		sub  %estelas, %estelas, 4
 		j move_to_previous
 
@@ -251,7 +252,7 @@ guardar_estela:
 	move %previous_bounces, $zero
 	move %service, $zero
 
-	li   $a1, 20
+	li   $a1, 44
 
 	inicializar_estelas:
 		li   $t1, '-'
@@ -260,7 +261,7 @@ guardar_estela:
 		sub  $a1, $a1, 1
 		bnez $a1, inicializar_estelas
 
-	sub  %estelas, %estelas, 20
+	sub  %estelas, %estelas, 44
 
 	li   $t1, %player
 
