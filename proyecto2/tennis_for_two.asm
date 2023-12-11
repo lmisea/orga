@@ -26,7 +26,7 @@ main: 	# $s1 es el reg para la pos x de la pelota
 
 	# El partido empieza con el servicio para el player 1
 	new_service (0, $s1, $s2, $s3, $s4, $s5, $s6, $s7, $t4, $k1, $t9)
-	draw_court  ($t9)
+	draw_court  ($t9, 0)
 
 	# Cuando empieza un servicio, se espera hasta que el jugador que le toca
 	# sacar raquetee la pelota antes de refrescar la pantalla

@@ -135,7 +135,7 @@
 	add  $k0, %ball_x, %vel_x
 	# En $t2 está la posición y de la pelota al finalizar el refrescamiento
 	add  $t2, %ball_y, %vel_y
-
+	
 	verificar_estela:
 		bne  %ball_x, $k0, dibujar_estela_x
 		bne  %ball_y, $t2, dibujar_estela_y
@@ -182,7 +182,7 @@ verificaciones:
 	
 	beqz $t8, verificar_estela
 
-	draw_court (%estelas)
+	draw_court (%estelas, 0)
 
 	reduce_vel_y (%vel_y)
 
@@ -198,7 +198,7 @@ verificaciones:
 # Macro para dibujar la cancha de tenis
 # Recibe como argumentos la posición y la velocidad
 # de la pelota
-.macro draw_court (%estelas)
+.macro draw_court (%estelas, %skip_first)
 	.data
 		first_line:   	.asciiz "                         \n"
 		second_line:  	.asciiz "                         \n"
@@ -221,6 +221,16 @@ verificaciones:
 
 trail:
 	add $t3, $t3, 1
+	
+	beq $t3, 1, verify_if_skip
+	j   no_skip
+	
+verify_if_skip:
+	# Verificamos si tenemos que saltarnos la primera estela
+	li $t1, %skip_first
+	bgtz $t1, next_trail
+	
+no_skip:
 	# Verificamos si la estela existe
 	lb  $t1, 2(%estelas)
 	li  $t8, '-'
@@ -317,10 +327,6 @@ calcular_linea:
 	calcular_pos_x:
 
 		calcular_coordenada_estela ('x', $t8, %estelas) # En $t8 tenemos la posición en x de la estela
-		
-		# No se dibuja una estela que esté fuera de la cancha
-		bgt  $t8, 24, next_trail
-		bltz $t8, next_trail
 		
 		beq  $t7, 1, verify_net
 		j    continue

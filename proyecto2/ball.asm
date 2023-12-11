@@ -12,6 +12,8 @@
 
 	bounce: li  %bounced, 1
 		mul %vel_y, %vel_y, -1
+		add %ball_y, %ball_y, 1
+		sub %vel_y, %vel_y, 1
 		add %previous_bounces, %previous_bounces, 1
 
 	end:
@@ -41,12 +43,12 @@
 	j end
 
 	point_for_player_one:
-		draw_court (%estelas)
+		draw_court (%estelas, 1)
 		new_service (0, %ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service, %estelas)
 		j end
 
 	point_for_player_two:
-		draw_court (%estelas)
+		draw_court (%estelas, 1)
 		new_service (1, %ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service, %estelas)
 
 	end:
