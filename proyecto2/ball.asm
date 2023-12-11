@@ -6,18 +6,19 @@
 ########################
 
 # Macro para verificar si la pelota tocó el piso
-.macro verify_ball_bounced (%ball_x, %ball_y, %vel_y, %previous_bounces)
-	ble %ball_y, $zero, bounce
+.macro verify_ball_bounced (%ball_x, %ball_y, %vel_y, %previous_bounces, %bounced)
+	blt %ball_y, 1, bounce
 	j end
 
-	bounce: 	mul %vel_y, %vel_y, -1
-			add %previous_bounces, %previous_bounces, 1
+	bounce: li  %bounced, 1
+		mul %vel_y, %vel_y, -1
+		add %previous_bounces, %previous_bounces, 1
 
 	end:
 .end_macro
 
 # Macro para verificar si la pelota rebotó contra la red
-.macro verify_ball_touched_net (%ball_x, %ball_y, %vel_x)
+.macro verify_ball_touched_net (%ball_x, %ball_y, %vel_x, %touched)
 	li $t3, 12
 	beq %ball_x, $t3, verify_height
 	j end
@@ -26,13 +27,14 @@
 			blt %ball_y, $t3, touched_net
 			j end
 
-	touched_net:	mul %vel_x, %vel_x, -1
+	touched_net:	li %touched, 1
+			mul %vel_x, %vel_x, -1
 
 	end:
 .end_macro
 
 # Macro para verificar si la pelota salió de la cancha en el eje x
-.macro is_ball_out_of_bounds (%ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service, %estelas)
+.macro is_ball_out_of_bounds (%ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service, %estelas)
 	bltz %ball_x, point_for_player_two
 	li $t1, 24
 	bgt %ball_x, $t1, point_for_player_one
@@ -40,12 +42,12 @@
 
 	point_for_player_one:
 		draw_court (%estelas)
-		new_service (0, %ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service, %estelas)
+		new_service (0, %ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service, %estelas)
 		j end
 
 	point_for_player_two:
 		draw_court (%estelas)
-		new_service (1, %ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service, %estelas)
+		new_service (1, %ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service, %estelas)
 
 	end:
 .end_macro
@@ -118,10 +120,10 @@ verify_mode:
 
 	j end
 
-	forehand: 	li %vel_y, 4
+	forehand: 	li %vel_y, 3
 			j end
 
-	underhand: 	li %vel_y, 3
+	underhand: 	li %vel_y, 4
 			j end
 
 	backhand:	li %vel_y, 0
@@ -141,12 +143,8 @@ verify_mode:
 .end_macro
 
 # Macro para cambiar el modo de raquetear la pelota
-.macro change_mode (%player, %mode, %new_mode, %turn)
-	bne %player, %turn, end
-
+.macro change_mode (%mode, %new_mode)
 	li %mode, %new_mode
-
-	end:
 .end_macro
 
 # Macro para añadir una estela
@@ -244,11 +242,12 @@ guardar_estela:
 .end_macro
 
 # Macro para empezar un nuevo servicio
-.macro new_service (%player, %ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service, %estelas)
+.macro new_service (%player, %ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service, %estelas)
 	li  %ball_y, 4
 	move %vel_x, $zero
 	move %vel_y, $zero
-	move %mode,  $zero
+	move %mode_one, $zero
+	move %mode_two, $zero
 	move %previous_bounces, $zero
 	move %service, $zero
 

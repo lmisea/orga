@@ -10,9 +10,9 @@
 
 # Macro para leer qué tecla presionó el usuario
 # Y poder realizar una acción dependiendo de la tecla presionada
-.macro read_key (%ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service)
+.macro read_key (%ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service)
 	lui $a2, 0xFFFF
-	li  $k1, 1000 	# El número de veces que vamos a verificar si se presionó
+	li  $t6, 1000 	# El número de veces que vamos a verificar si se presionó
 			# una tecla o no
 
 	verify:
@@ -26,8 +26,8 @@
 		j    no_service
 
 	no_service:
-		beqz $k1, end
-		sub  $k1, $k1, 1
+		beqz $t6, end
+		sub  $t6, $t6, 1
 		j    verify
 
 
@@ -92,35 +92,29 @@
 		j   end
 
 	d_key:	li  $t1, 0
-		attempt_player_shot ($t1, %ball_x, %previous_bounces, %vel_x, %vel_y, %mode, %turn, %service)
+		attempt_player_shot ($t1, %ball_x, %previous_bounces, %vel_x, %vel_y, %mode_one, %turn, %service)
 		j   end
 
 	l_key:	li  $t1, 1
-		attempt_player_shot ($t1, %ball_x, %previous_bounces, %vel_x, %vel_y, %mode, %turn, %service)
+		attempt_player_shot ($t1, %ball_x, %previous_bounces, %vel_x, %vel_y, %mode_two, %turn, %service)
 		j   end
 
-	x_key:	li  $t1, 0
-		change_mode ($t1, %mode, 1, %turn)
+	s_key:	change_mode (%mode_one, 0)
 		j   end
 
-	m_key:	li  $t1, 1
-		change_mode ($t1, %mode, 1, %turn)
+	k_key:	change_mode (%mode_two, 0)
+		j   end
+		
+	x_key:	change_mode (%mode_one, 1)
 		j   end
 
-	s_key:	li  $t1, 0
-		change_mode ($t1, %mode, 0, %turn)
+	m_key:	change_mode (%mode_two, 1)
 		j   end
 
-	k_key:	li  $t1, 1
-		change_mode ($t1, %mode, 0, %turn)
+	w_key:	change_mode (%mode_one, 2)
 		j   end
 
-	w_key:	li  $t1, 0
-		change_mode ($t1, %mode, 2, %turn)
-		j   end
-
-	o_key:	li  $t1, 1
-		change_mode ($t1, %mode, 2, %turn)
+	o_key:	change_mode (%mode_two, 2)
 		j   end
 
 	q_key:	done ()
@@ -129,19 +123,24 @@
 .end_macro
 
 # Macro para realizar un refresh de la pantalla
-.macro refresh_court (%ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service, %estelas)
+.macro refresh_court (%ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service, %estelas)
 	get_time ()
 	move $a3, $a1
+	# Usaremos $t8 para poder saber cuándo llegamos a la posición final de la pelota
+	li   $t8, 0
 
 	#ball_next_pos (%ball_x, %ball_y, %vel_x, %vel_y)
 
+	# En $k0 está la posición x de la pelota al finalizar el refrescamiento
 	add  $k0, %ball_x, %vel_x
+	# En $t2 está la posición y de la pelota al finalizar el refrescamiento
 	add  $t2, %ball_y, %vel_y
 
 	verificar_estela:
 		bne  %ball_x, $k0, dibujar_estela_x
 		bne  %ball_y, $t2, dibujar_estela_y
-		j    continue
+		li   $t8, 1
+		j    verificaciones
 
 	dibujar_estela_x:
 		bgtz %vel_x, vel_x_pos
@@ -171,20 +170,23 @@
 
 	dibujar_estela:
 		add_trail (%ball_x, %ball_y, %estelas)
-		j    verificar_estela
+		j    verificaciones
 
-continue:
-	is_ball_out_of_bounds (%ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service, %estelas)
 
-	verify_ball_bounced (%ball_x, %ball_y, %vel_y, %previous_bounces)
+verificaciones:
+	is_ball_out_of_bounds (%ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service, %estelas)
 
-	verify_ball_touched_net (%ball_x, %ball_y, %vel_x)
+	verify_ball_bounced (%ball_x, %ball_y, %vel_y, %previous_bounces, $t8)
+
+	verify_ball_touched_net (%ball_x, %ball_y, %vel_x, $t8)
+	
+	beqz $t8, verificar_estela
 
 	draw_court (%estelas)
 
 	reduce_vel_y (%vel_y)
 
-	read_key (%ball_x, %ball_y, %vel_x, %vel_y, %mode, %previous_bounces, %turn, %service)
+	read_key (%ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service)
 
 	get_time ()
 	sub  $a3, $a3, $a1 #tiempo transcurrido
@@ -205,15 +207,17 @@ continue:
 		fifth_line:   	.asciiz "                         \n"
 		sixth_line:   	.asciiz "                         \n"
 		seventh_line: 	.asciiz "            O            \n"
-		eighth_line:  	.asciiz "            O            \n"
+		eighth_line: 	.asciiz "            O            \n"
 		ninth_line:  	.asciiz "            O            \n"
-		tenth_line:   	.asciiz "OOOOOOOOOOOOOOOOOOOOOOOOO\n\n"
+		tenth_line:  	.asciiz "OOOOOOOOOOOOOOOOOOOOOOOOO\n\n"
 
 		blank_line:	.asciiz "                         \n"
 		net_line:	.asciiz "            O            \n"
 	.text
 	# En $t3 anotamos el número de estela que estamos dibujando
 	li $t3, 0
+	# Usaremos $a1 para evitar dibujar una estela en la red
+	li $t7, 0
 
 trail:
 	add $t3, $t3, 1
@@ -230,9 +234,10 @@ trail:
 	next_trail:
 		blt $t3, 11, add_four
 		sub %estelas, %estelas, 40
-		j imprimir
+		j   imprimir
 
 	add_four:
+		li  $t7, 0
 		add %estelas, %estelas, 4
 		j   trail
 
@@ -264,7 +269,7 @@ calcular_linea:
 	li   $t1, 1
 	beq  $t8, $t1, novena_lin
 
-	beqz $t8, calcular_pos_x
+	beqz $t8, next_trail
 
 	# Si no está entre 0 y 9, se salta a la siguiente estela
 	j next_trail
@@ -295,16 +300,18 @@ calcular_linea:
 
 	septima_lin:
 		la $t6, seventh_line
+		li $t7, 1
 		j  calcular_pos_x
 
 	octava_lin:
 		la $t6, eighth_line
+		li $t7, 1
 		j  calcular_pos_x
 
 	novena_lin:
 		la $t6, ninth_line
+		li $t7, 1
 		j  calcular_pos_x
-
 
 	# Calculamos la posición x de la lin correspondiente
 	calcular_pos_x:
@@ -314,7 +321,14 @@ calcular_linea:
 		# No se dibuja una estela que esté fuera de la cancha
 		bgt  $t8, 24, next_trail
 		bltz $t8, next_trail
+		
+		beq  $t7, 1, verify_net
+		j    continue
 
+		verify_net:
+			beq $t8, 12, next_trail
+
+	continue:
 		add $t6, $t6, $t8
 
 		# Verificamos si estamos agregando la pelota
@@ -338,6 +352,7 @@ calcular_linea:
 		print_space (second_line)
 		print_space (third_line)
 		print_space (fourth_line)
+		print_space (fifth_line)
 		print_space (sixth_line)
 		print_space (seventh_line)
 		print_space (eighth_line)
@@ -378,5 +393,4 @@ calcular_linea:
 
 		la $t3, ninth_line
 		reescribir_linea ($t3, $t6)
-	end:
 .end_macro
