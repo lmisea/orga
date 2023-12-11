@@ -133,12 +133,6 @@ verify_mode:
 	end:
 .end_macro
 
-# Macro para calcular la siguiente posición de la pelota
-.macro ball_next_pos (%ball_x, %ball_y, %vel_x, %vel_y)
-	add %ball_x, %ball_x, %vel_x
-	add %ball_y, %ball_y, %vel_y
-.end_macro
-
 # Macro para reducir en 1 la velocidad de y
 .macro reduce_vel_y (%vel_y)
 	sub %vel_y, %vel_y, 1

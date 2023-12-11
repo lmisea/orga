@@ -126,10 +126,9 @@
 .macro refresh_court (%ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service, %estelas)
 	get_time ()
 	move $a3, $a1
+	
 	# Usaremos $t8 para poder saber cuándo llegamos a la posición final de la pelota
 	li   $t8, 0
-
-	#ball_next_pos (%ball_x, %ball_y, %vel_x, %vel_y)
 
 	# En $k0 está la posición x de la pelota al finalizar el refrescamiento
 	add  $k0, %ball_x, %vel_x
@@ -145,15 +144,15 @@
 	dibujar_estela_x:
 		bgtz %vel_x, vel_x_pos
 		bltz %vel_x, vel_x_neg
-		j    dibujar_estela
+		j    dibujar_estela_y
 
 	vel_x_pos:
 		add  %ball_x, %ball_x, 1
-		j    dibujar_estela
+		j    dibujar_estela_y
 
 	vel_x_neg:
 		sub  %ball_x, %ball_x, 1
-		j    dibujar_estela
+		j    dibujar_estela_y
 
 	dibujar_estela_y:
 		bgtz %vel_y, vel_y_pos
@@ -161,17 +160,18 @@
 		j    dibujar_estela
 
 	vel_y_pos:
+		beq  %ball_y, $t2, dibujar_estela
 		add  %ball_y, %ball_y, 1
 		j    dibujar_estela
 
 	vel_y_neg:
+		beq  %ball_y, $t2, dibujar_estela
 		sub  %ball_y, %ball_y, 1
 		j    dibujar_estela
 
 	dibujar_estela:
 		add_trail (%ball_x, %ball_y, %estelas)
 		j    verificaciones
-
 
 verificaciones:
 	is_ball_out_of_bounds (%ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service, %estelas)
