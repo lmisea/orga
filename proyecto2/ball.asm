@@ -265,22 +265,100 @@ guardar_estela:
 	beqz $t1, player_one
 	j player_two
 
-	player_one: 	li   %ball_x, 2
+	player_one: 	move %turn, $zero
+			li   %ball_x, 2
 			lb   $t1, 0(%puntaje)
 			ascii_to_int ($t1)
+			beq  $t1, 3, aumentar_set_p_one
 			add  $t1, $t1, 1
 			int_to_ascii ($t1)
 			sb   $t1, 0(%puntaje)
-			move %turn, $zero
-			j trail
-
-	player_two: 	li %ball_x, 22
-			lb   $t1, 3(%puntaje)
+			j    trail
+			
+	aumentar_set_p_one:
+			li   $t1, 0
+			sb   $t1, 0(%puntaje)
+			sb   $t1, 3(%puntaje)
+			lb   $t1, 1(%puntaje)
+			ascii_to_int ($t1)
+			beq  $t1, 5, verify_tiebreak_p_one
+			beq  $t1, 6, aumentar_match_p_one
+			add  $t1, $t1, 1
+			int_to_ascii ($t1)
+			sb   $t1, 1(%puntaje)
+			j    trail	
+			
+	verify_tiebreak_p_one:
+			lb   $t1, 4(%puntaje)
+			ascii_to_int ($t1)
+			bgt  $t1, 4, tiebreak_p_one
+			j    aumentar_match_p_one
+			
+	tiebreak_p_one:
+			lb   $t1, 1(%puntaje)
 			ascii_to_int ($t1)
 			add  $t1, $t1, 1
 			int_to_ascii ($t1)
+			sb   $t1, 1(%puntaje)
+			j    trail
+			
+	aumentar_match_p_one:
+			li   $t1, 0
+			sb   $t1, 1(%puntaje)
+			sb   $t1, 4(%puntaje)
+			lb   $t1, 2(%puntaje)
+			ascii_to_int ($t1)
+			add  $t1, $t1, 1
+			int_to_ascii ($t1)
+			sb   $t1, 2(%puntaje)
+			j    trail	
+			
+	player_two: 	li %turn, 1
+			li %ball_x, 22
+			lb   $t1, 3(%puntaje)
+			ascii_to_int ($t1)
+			beq  $t1, 3, aumentar_set_p_two
+			add  $t1, $t1, 1
+			int_to_ascii ($t1)
 			sb   $t1, 3(%puntaje)
-			li %turn, 1
+			j    trail
+			
+	aumentar_set_p_two:
+			li   $t1, 0
+			sb   $t1, 0(%puntaje)
+			sb   $t1, 3(%puntaje)
+			lb   $t1, 4(%puntaje)
+			ascii_to_int ($t1)
+			beq  $t1, 5, verify_tiebreak_p_two
+			beq  $t1, 6, aumentar_match_p_two
+			add  $t1, $t1, 1
+			int_to_ascii ($t1)
+			sb   $t1, 4(%puntaje)
+			j    trail
+			
+	verify_tiebreak_p_two:
+			lb   $t1, 1(%puntaje)
+			ascii_to_int ($t1)
+			bgt  $t1, 4, tiebreak_p_two
+			j    aumentar_match_p_two
+			
+	tiebreak_p_two:
+			lb   $t1, 4(%puntaje)
+			ascii_to_int ($t1)
+			add  $t1, $t1, 1
+			int_to_ascii ($t1)
+			sb   $t1, 4(%puntaje)
+			j    trail
+			
+	aumentar_match_p_two:
+			li   $t1, 0
+			sb   $t1, 1(%puntaje)
+			sb   $t1, 4(%puntaje)
+			lb   $t1, 5(%puntaje)
+			ascii_to_int ($t1)
+			add  $t1, $t1, 1
+			int_to_ascii ($t1)
+			sb   $t1, 5(%puntaje)
 
 	trail: add_trail (%ball_x, %ball_y, %estelas)
 .end_macro
@@ -303,14 +381,47 @@ guardar_estela:
 .macro imprimir_puntaje (%puntaje)
 	# Imprimimos la sección de game
 	print_str ("Game:  ")
-	lb  $t1, 0(%puntaje)
+	lb   $t1, 0(%puntaje)
 	ascii_to_int ($t1)
-	print_int ($t1)
-	print_str ("        Game:  ")
-	lb  $t1, 3(%puntaje)
-	ascii_to_int ($t1)
-	print_int ($t1)
+	beqz $t1, cero
+	beq  $t1, 1, quince
+	beq  $t1, 2, treinta
+	beq  $t1, 3, cuarenta
 	
+	cero: 	  print_str ("00")
+		  j game_p_two
+		
+	quince:   print_str ("15")
+		  j game_p_two
+		
+	treinta:  print_str ("30")
+		  j game_p_two
+		
+	cuarenta: print_str ("40")
+		  j game_p_two
+	
+game_p_two:
+	print_str ("       Game:  ")
+	lb   $t1, 3(%puntaje)
+	ascii_to_int ($t1)
+	beqz $t1, zero
+	beq  $t1, 1, fifteen
+	beq  $t1, 2, thirty
+	beq  $t1, 3, forty
+	
+	zero: 	 print_str ("00")
+		 j sets
+		
+	fifteen: print_str ("15")
+		 j sets
+		
+	thirty:  print_str ("30")
+		 j sets
+		
+	forty:   print_str ("40")
+		 j sets
+		 
+sets:	
 	# Imprimimos la sección de set
 	print_str ("\nSet:   ")
 	lb  $t1, 1(%puntaje)
@@ -330,5 +441,28 @@ guardar_estela:
 	lb  $t1, 5(%puntaje)
 	ascii_to_int ($t1)
 	print_int ($t1)
-	print_str ("\n")
+	print_str ("\n\n")
+	
+	# Verificamos si alguno de los jugadores ganó 3 matches
+	lb  $t1, 2(%puntaje)
+	ascii_to_int ($t1)
+	beq $t1, 3, player_one_won
+	lb  $t1, 5(%puntaje)
+	ascii_to_int ($t1)
+	beq $t1, 3, player_two_won
+	j   end
+	
+	player_one_won:
+		print_str ("Player 1 won 3 matches.\n")
+		print_str ("Player 1 won!\n")
+		print_str ("Thanks for playing :D\n")
+		done ()
+		
+	player_two_won:
+		print_str ("Player 2 won 3 matches.\n")
+		print_str ("Player 2 won!\n")
+		print_str ("Thanks for playing :D\n")
+		done ()
+	
+	end:
 .end_macro

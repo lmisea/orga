@@ -31,6 +31,8 @@ main: 	# $s1 es el reg para la pos x de la pelota
 	inicializar_puntaje ($t7)
 	imprimir_puntaje ($t7)
 	new_service (0, $s1, $s2, $s3, $s4, $s5, $s6, $s7, $t4, $k1, $t9, $t7)
+	# Se vuelve a inicializar el puntaje, ya que con cada nuevo servicio, este
+	# se modifica y en el primer servicio se necesita el puntaje reinciado
 	inicializar_puntaje ($t7)
 	draw_court  ($t9, 0)
 
@@ -49,3 +51,4 @@ main: 	# $s1 es el reg para la pos x de la pelota
 		j    refresh_screen
 
 	# Se termina el programa cuando el usuario presione 'q' o 'Q'
+	# O cuando algún jugador gane 3 matches
