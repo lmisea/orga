@@ -24,6 +24,34 @@
 	end:
 .end_macro
 
+# Macro para reiniciar la cuenta de rebotes en el turno
+.macro reset_prevoius_bounces (%previous_bounces)
+	move %previous_bounces, $zero
+.end_macro
+
+# Macro para calcular en qué cancha se encuentra la pelota en la pos actual
+# En %reg se guardará la cancha en la que esté la pelota
+# 0 para la cancha del jugador 1 y 1 para la cancha del jugador 2
+.macro calcular_cancha_pelota (%ball_x, %estelas, %reg)
+	beq  %ball_x, 12, leer_pos_anterior
+	blt  %ball_x, 12, primera_cancha
+	bgt  %ball_x, 12, segunda_cancha
+	
+	leer_pos_anterior:
+			add %estelas, %estelas, 4
+			calcular_coordenada_estela ('x', %reg, %estelas)
+			sub %estelas, %estelas, 4
+			blt %reg, 12, primera_cancha
+			bgt %reg, 12, segunda_cancha
+	
+	primera_cancha: li  %reg, 0
+			j   end
+			
+	segunda_cancha: li  %reg, 1
+			
+	end:
+.end_macro
+
 # Macro para verificar si la pelota rebotó contra la red
 .macro verify_ball_touched_net (%ball_x, %ball_y, %vel_x, %touched)
 	li $t3, 12

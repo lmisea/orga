@@ -151,6 +151,11 @@
 	# Usaremos $t8 para poder saber cuándo llegamos a la posición final de la pelota
 	li   $t8, 0
 
+	# Usaremos $t6 para almacenar en qué cancha está la pelota y si cambia a
+	# lo largo del refrescamiento para reiniciar el número de rebotes en el
+	# turno actual
+	calcular_cancha_pelota (%ball_x, %estelas, $t6)
+	
 	# En $k0 está la posición x de la pelota al finalizar el refrescamiento
 	add  $k0, %ball_x, %vel_x
 	# En $t2 está la posición y de la pelota al finalizar el refrescamiento
@@ -209,12 +214,24 @@ verificaciones:
 	verify_ball_bounced (%ball_x, %ball_y, %vel_y, %previous_bounces, $t8)
 
 	verify_ball_touched_net (%ball_x, %ball_y, %vel_x, $t8)
+	
+	calcular_cancha_pelota (%ball_x, %estelas, $a2)
+	
+	# Si verifica si la pelota pasó a la otra cancha
+	bne  $a2, $t6, cambio_cancha
+	j    verificar_colision
+	
+	# Si la pelota pasó a la otra cancha, se reinicia el núm de rebotes en el turno
+	cambio_cancha:	reset_prevoius_bounces (%previous_bounces)
+			move $t6, $a2
 
+verificar_colision:
 	# En caso de que la pelota no haya rebotado ni se haya tocado la red, se continua
 	# con la siguiente posición de la estela
 	beqz $t8, verificar_estela
-	# En caso contrario, se procede a dibujar la cancha y la pelota junto con las estelas
-
+	
+	# En caso contrario, ocurrió una colision y se procede a dibujar la cancha y la
+	# pelota junto con las estelas
 	draw_court (%estelas, 0)
 
 	# Reducion de velocidad y de la pelota en 1 al finalizar el refrescamiento
