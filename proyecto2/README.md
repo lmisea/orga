@@ -14,6 +14,8 @@ El juego se juega con las teclas `d` para raquetear con el jugador 1, y `l` para
 
 (En caso de no especificar el modo de raqueteo, se asume que es forehand).
 
+También se añadió la opción de terminar el juego en cualquier momento, presionando la tecla `q`.
+
 ## Diseño de la estructura de datos
 
 Este proyecto se apoya mucho en el uso de macros, para poder modularizar el código y hacerlo más legible. Por ejemplo, se usan macros para guardar la posición actual de la pelota, para leer la tecla presionada por el usuario, para refrescar la pantalla, etc.
@@ -29,11 +31,19 @@ Los registros reservados para las variables globales son los siguientes:
 5. `$s5`: Guarda el modo de raqueteo del jugador 1.
 6. `$s6`: Guarda el modo de raqueteo del jugador 2.
 7. `$s7`: Guarda la cantidad de veces que ha rebotado la pelota en el turno actual.
+8. `$t4`: Guarda a qué jugador le toca raquetear en el turno actual.
+9. `$k1`: Guarda si es el inicio de un servicio o no.
+10. `$t9`: Es el reg donde cargaremos la dirección del espacio reservado para las estelas de la pelota.
+11. `$t7`: Es el reg donde cargaremos la dirección del espacio reservado para el puntaje.
 
-arreglo de 11 posiciones para guardar la posición actual de la pelota, y las 10 posiciones anteriores a esta. Este arreglo tiene un comportamiento LIFO (Last In First Out), es decir, que cada nueva posición de la pelota se guarda en la primera posición del arreglo y es la primera en ser impresa, y así sucesivamente.
-Por esto, tiene un funcionamiento similar a una pila.
+De estos 11 registros, los más interesantes son `$t9` y `$t7`. En `$t9` se guarda la dirección del espacio reservado para las estelas de la pelota. Este espacio reservado se comporta como una pila, con un tamaño de 11 posiciones. Cada vez que se guarda una nueva posición de la pelota, se guarda en la primera posición del arreglo, y se mueven todas las posiciones anteriores una posición hacia la derecha. Empezando por la penúltima posición, hasta la primera posición. Esto hace que se obtenga un comportamiento LIFO (Last In First Out), solo que cuando se llena la pila, se empieza a sobreescribir la posición más antigua de la pelota. Como una especie de pila circular.
 
-Sin embargo, no es una pila porque cada vez que se guarda una nueva posición de la pelota, se debe mover cada una de las posiciones anteriores una posición hacia la derecha, para poder hacer espacio para la nueva posición. Esto se hace con un ciclo `for` que recorre el arreglo de derecha a izquierda, y mueve cada posición una posición hacia la derecha. Empezando por la penúltima posición, hasta la primera posición. Luego, se guarda la nueva posición de la pelota en la primera posición del arreglo.
+En `$t7` se guarda la dirección del espacio reservado para el puntaje. Este espacio reservado utiliza los 3 primeros bytes para guardar el puntaje del jugador 1, y los 3 últimos bytes para guardar el puntaje del jugador 2. En el primer byte se guarda el puntaje de los "games", en el segundo byte se guarda el puntaje de los "sets", y en el tercer byte se guarda el puntaje de los "matches".
+
+Cada vez que la pelota sale de la pantalla, se actualiza el o los bytes del puntaje correspondientes.
+Lo interesante de usar un espacio reservado para el puntaje, es que se minimiza la cantidad de registros que se usan para guardar el puntaje. En vez de usar 3 registros para guardar el puntaje del jugador 1, y 3 registros para guardar el puntaje del jugador 2, se usa un solo registro para guardar el puntaje de ambos jugadores.
+
+En caso de que se necesiten más registros, se adoptaría esta misma estrategia de usar un espacio reservado para guardar dos o más variables.
 
 ## Ejemplo de uso
 
@@ -287,12 +297,45 @@ Donde se puede apreciar que el jugador 2 ganó el primer "game".
 
 ## Detalles de la implementación
 
+Las mayores dificultades previstas para este proyecto eran las siguientes:
+a. Leer la tecla presionada por el usuario, sin que el programa se detuviera a esperar que el usuario presionara una tecla, para poder refrescar la pantalla constantemente.
+b. Ser capaz de diseñar un sistema para guardar las últimas 10 posiciones de la pelota, para poder dibujar las estelas de la pelota. Y que estas estelas se dibujaran en diagonal para que se viera como una pelota en movimiento.
+c. Verificar que la pelota rebotara en la red y en el piso de la cancha. Y que se contara el número de veces que la pelota rebotaba en el turno actual.
+d. Verificar cuando cada jugador podía raquetear, y cuando no podía raquetear.
+
+La primera dificultad en ser abordada fue la de leer la tecla presionada por el usuario. Para esto, en vez de usar la syscall 8 (read string), se usó el sistema de interrupciones del teclado. Este sistema de interrupciones permite que el programa se ejecute constantemente, sin detenerse a esperar que el usuario presione una tecla. Y en cada refresco de la pantalla, se verifica si el usuario presionó una tecla, y si lo hizo, se lee la tecla presionada.
+
+Este sistema de interrupciones del teclado se implementó usando el _keyboard and display MMIO simulator_ del simulador MARS. Y se revisó constantemente el espacio de memoria _0xffff0000_, que es donde se almacena un 1 cuando el usuario presiona una tecla. Si el valor en esa dirección de memoria es 1, entonces se revisa el espacio de memoria _0xffff0004_, que es donde se almacena la tecla presionada por el usuario. Y se lee la tecla presionada.
+
+La segunda dificultad en ser abordada fue la de diseñar un sistema para guardar las últimas 10 posiciones de la pelota. Esta dificultad fue particularmente desafiante, porque primero se intentó calcular las estelas en el momento en que se dibujaba la pelota. Pero esto resultó ser muy complicado. Por lo que se debía diseñar un sistema que guardara las últimas posiciones de la pelota, en el momento en que sucedieran, y que luego se imprimieran las estelas registradas al momento de refrescar la pantalla.
+
+Aquí es donde se decidió usar un espacio reservado para las estelas de la pelota, que se comportara como una pila circular. Fue un poco complicado implementar este sistema, sobre todo la parte de mover las posiciones anteriores una posición hacia la derecha. Pero a pesar de la complejidad, este sistema resultó ser muy útil, porque permitió llevar un registro en vivo de las posiciones de la pelota, y poder dibujar las estelas de la pelota en diagonal.
+
+Gracias al sistema de monitoreo de la pelota, se pudo abordar la tercera dificultad, que era la de verificar que la pelota rebotara en la red y en el piso de la cancha. Y que se contara el número de veces que la pelota rebotaba en el turno actual. Para esto, cada vez que se guardaba una nueva posición de la pelota, se verificaba si la pelota estaba en la posición de la red o en la posición del piso de la cancha.
+
+Si la pelota estaba en la red, entonces se invertía la velocidad en x de la pelota y si la pelota estaba en el piso de la cancha, entonces se invertía la velocidad en y de la pelota. Y en el caso de rebote en el piso de la cancha, se aumentaba el contador de rebotes en el turno actual.
+
+Con toda la información que se tenía sobre la pelota y las teclas presionadas por el usuario, se pudo abordar la cuarta y última dificultad, que era la de verificar cuando cada jugador podía raquetear, y cuando no podía raquetear. Para esto, se llevó un registro de a qué jugador le tocaba raquetear en el turno actual, de forma que si un jugador intentaba raquetear cuando no le tocaba, se ignoraba la tecla presionada.
+
+De esta forma, cuando se presionaba la tecla `d` o `l`, se verificaba si le tocaba raquetear al jugador 1 o al jugador 2, respectivamente. Y si le tocaba raquetear, entonces se verificaba si la pelota estaba en la cancha del jugador correspondiente, y si lo estaba, entonces se verificaba si la pelota había rebotado 2 veces o más en el turno actual. Si la pelota había rebotado 2 veces o más, se ignoraba la tecla presionada. Y si la pelota no había rebotado 2 veces o más, entonces se raqueteaba la pelota.
+
+Como curiosidad, no hacía falta verificar si el jugador ya había raqueteado en el turno actual, porque si el jugador ya había raqueteado, entonces se indicaba que le tocaba raquetear al otro jugador. Así que no había forma de que un jugador raqueteara dos veces en el mismo turno.
+
+Finalmente, se implementó el sistema de puntaje, que consiste en un espacio reservado para el puntaje. Fue relativamente sencillo implementar este sistema, porque se aprovechó el monitoreo de la pelota para verificar cuando la pelota salía de la pantalla, y cada vez que la pelota salía de la pantalla, se actualizaba el puntaje correspondiente.
+
+Como dato curioso, cuando alguno de los jugadores gana 3 "matches", se muestra un mensaje de victoria en la pantalla y se agradece al usuario por jugar con una gran sonrisa `:D`.
+
 ## Conclusiones y lecciones aprendidas
 
-Las mayores dificultades que se presentaron durante el desarrollo del proyecto fueron:
-a. Leer la tecla presionada por el usuario, sin que el programa se detuviera a esperar que el usuario presionara una tecla.
-b. Ser capaz de diseñar un sistema para guardar las últimas 10 posiciones de la pelota, para poder dibujar las estelas de la pelota. Y que estas estelas se dibujaran en diagonal para que se viera como una pelota en movimiento.
-c. Verificar que la pelota rebotara en la red y en el piso de la cancha.
+Este proyecto fue muy interesante, porque permitió ilustrar la importancia de las interrupciones en los sistemas de cómputo. Donde no es necesario que el programa se detenga a esperar que ocurra un evento, sino que el programa puede seguir ejecutándose, y cuando ocurre un evento, el programa puede reaccionar a ese evento.
+
+También fue interesante enfrentarse a la dificultad de diseñar un sistema para guardar las estelas de la pelota. Porque se tuvo que pensar en un sistema que permitiera sobreescribir las posiciones más antiguas de la pelota, cuando se llenara el espacio reservado para las estelas. Y se tuvo que repasar algunos conceptos de estructuras de datos vistas en la materia de Algoritmos y Estructuras de Datos II. Siempre es interesante ver cómo se pueden aplicar los conceptos aprendidos en otras materias en esta materia.
+
+También se aprendió a llevar un registro del comportamiento de un objeto en movimiento, al monitorear cada nueva posición del objeto. Y verificando cualquier evento que pudiera ocurrir en esa nueva posición del objeto.
+
+Y por último, se aprendió a crear un proyecto relativamente grande, usando una pequeña cantidad de registros. Lo cual es muy útil, porque permite aprovechar al máximo los recursos disponibles, incluso cuando se tienen pocos recursos. Y sobre todo, no desperdiciar recursos.
+
+Y como nota personal, este proyecto es el primer videojuego que he desarrollado, y me siento muy contento con el resultado. Porque es un juego completamente funcional, y que se puede jugar sin problemas o errores. Y que además se puede jugar con otra persona, lo cual es muy divertido.
 
 ## Grupo del proyecto
 
