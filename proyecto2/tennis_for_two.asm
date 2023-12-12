@@ -8,7 +8,8 @@
 .include "in_out.asm"
 
 .data
-	estelas_array: .space 44
+	estelas_array: 	.space 44
+	puntaje:	.space 6
 
 .text
 main: 	# $s1 es el reg para la pos x de la pelota
@@ -21,11 +22,16 @@ main: 	# $s1 es el reg para la pos x de la pelota
 	# $t4 es el reg para saber a que jugador le toca raquetear
 	# $k1 es el reg para marcar si se está al inicio de un servicio o no
 	# $t9 es el reg donde cargaremos la dirección del space estelas
+	# $t7 es el reg donde cargaremos el puntaje del match
 
+	la $t7, puntaje
 	la $t9, estelas_array
 
 	# El partido empieza con el servicio para el player 1
-	new_service (0, $s1, $s2, $s3, $s4, $s5, $s6, $s7, $t4, $k1, $t9)
+	inicializar_puntaje ($t7)
+	imprimir_puntaje ($t7)
+	new_service (0, $s1, $s2, $s3, $s4, $s5, $s6, $s7, $t4, $k1, $t9, $t7)
+	inicializar_puntaje ($t7)
 	draw_court  ($t9, 0)
 
 	# Cuando empieza un servicio, se espera hasta que el jugador que le toca
@@ -37,7 +43,8 @@ main: 	# $s1 es el reg para la pos x de la pelota
 	# Una vez que se raqueteó la pelota en el servicio, se refresca la pantalla
 	# hasta que la pelota salga del campo y empiece un nuevo servicio
 	refresh_screen:
-		refresh_court ($s1, $s2, $s3, $s4, $s5, $s6, $s7, $t4, $k1, $t9)
+		imprimir_puntaje ($t7)
+		refresh_court ($s1, $s2, $s3, $s4, $s5, $s6, $s7, $t4, $k1, $t9, $t7)
 		beqz $k1, service_start
 		j    refresh_screen
 

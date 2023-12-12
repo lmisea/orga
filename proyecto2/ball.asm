@@ -36,20 +36,22 @@
 .end_macro
 
 # Macro para verificar si la pelota salió de la cancha en el eje x
-.macro is_ball_out_of_bounds (%ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service, %estelas)
+.macro is_ball_out_of_bounds (%ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service, %estelas, %puntaje)
 	bltz %ball_x, point_for_player_two
 	li $t1, 24
 	bgt %ball_x, $t1, point_for_player_one
 	j end
 
 	point_for_player_one:
-		draw_court (%estelas, 1)
-		new_service (0, %ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service, %estelas)
+		draw_court  (%estelas, 1)
+		new_service (0, %ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service, %estelas, %puntaje)
+		imprimir_puntaje (%puntaje)
 		j end
 
 	point_for_player_two:
-		draw_court (%estelas, 1)
-		new_service (1, %ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service, %estelas)
+		draw_court  (%estelas, 1)
+		new_service (1, %ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service, %estelas, %puntaje)
+		imprimir_puntaje (%puntaje)
 
 	end:
 .end_macro
@@ -150,21 +152,21 @@ verify_mode:
 
 	move_to_previous:
 		add  $t5, $t5, 1
-		lb   $t7, 0(%estelas)
+		lb   $t1, 0(%estelas)
 		add  %estelas, %estelas, 4
-		sb   $t7, 0(%estelas)
+		sb   $t1, 0(%estelas)
 		sub  %estelas, %estelas, 3
-		lb   $t7, 0(%estelas)
+		lb   $t1, 0(%estelas)
 		add  %estelas, %estelas, 4
-		sb   $t7, 0(%estelas)
+		sb   $t1, 0(%estelas)
 		sub  %estelas, %estelas, 3
-		lb   $t7, 0(%estelas)
+		lb   $t1, 0(%estelas)
 		add  %estelas, %estelas, 4
-		sb   $t7, 0(%estelas)
+		sb   $t1, 0(%estelas)
 		sub  %estelas, %estelas, 3
-		lb   $t7, 0(%estelas)
+		lb   $t1, 0(%estelas)
 		add  %estelas, %estelas, 4
-		sb   $t7, 0(%estelas)
+		sb   $t1, 0(%estelas)
 		sub  %estelas, %estelas, 7
 		beq  $t5, 10, guardar_estela
 		sub  %estelas, %estelas, 4
@@ -238,7 +240,7 @@ guardar_estela:
 .end_macro
 
 # Macro para empezar un nuevo servicio
-.macro new_service (%player, %ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service, %estelas)
+.macro new_service (%player, %ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service, %estelas, %puntaje)
 	li  %ball_y, 4
 	move %vel_x, $zero
 	move %vel_y, $zero
@@ -249,8 +251,8 @@ guardar_estela:
 
 	li   $a1, 44
 
+	li   $t1, '-'
 	inicializar_estelas:
-		li   $t1, '-'
 		sb   $t1, 0(%estelas)
 		add  %estelas, %estelas, 1
 		sub  $a1, $a1, 1
@@ -263,12 +265,70 @@ guardar_estela:
 	beqz $t1, player_one
 	j player_two
 
-	player_one: 	li %ball_x, 2
+	player_one: 	li   %ball_x, 2
+			lb   $t1, 0(%puntaje)
+			ascii_to_int ($t1)
+			add  $t1, $t1, 1
+			int_to_ascii ($t1)
+			sb   $t1, 0(%puntaje)
 			move %turn, $zero
 			j trail
 
 	player_two: 	li %ball_x, 22
+			lb   $t1, 3(%puntaje)
+			ascii_to_int ($t1)
+			add  $t1, $t1, 1
+			int_to_ascii ($t1)
+			sb   $t1, 3(%puntaje)
 			li %turn, 1
 
 	trail: add_trail (%ball_x, %ball_y, %estelas)
+.end_macro
+
+# Macro para inicializar el puntaje del match
+.macro inicializar_puntaje (%puntaje)
+	li   $a1, 6
+	li   $t1, '0'
+	
+	inicializar:
+		sb   $t1, 0(%puntaje)
+		add  %puntaje, %puntaje, 1
+		sub  $a1, $a1, 1
+		bnez $a1, inicializar
+		
+	sub  %puntaje, %puntaje, 6
+.end_macro
+
+# Macro para imprimir el puntaje actual
+.macro imprimir_puntaje (%puntaje)
+	# Imprimimos la sección de game
+	print_str ("Game:  ")
+	lb  $t1, 0(%puntaje)
+	ascii_to_int ($t1)
+	print_int ($t1)
+	print_str ("        Game:  ")
+	lb  $t1, 3(%puntaje)
+	ascii_to_int ($t1)
+	print_int ($t1)
+	
+	# Imprimimos la sección de set
+	print_str ("\nSet:   ")
+	lb  $t1, 1(%puntaje)
+	ascii_to_int ($t1)
+	print_int ($t1)
+	print_str ("        Set:   ")
+	lb  $t1, 4(%puntaje)
+	ascii_to_int ($t1)
+	print_int ($t1)
+	
+	# Imprimimos la sección de match
+	print_str ("\nMatch: ")
+	lb  $t1, 2(%puntaje)
+	ascii_to_int ($t1)
+	print_int ($t1)
+	print_str ("        Match: ")
+	lb  $t1, 5(%puntaje)
+	ascii_to_int ($t1)
+	print_int ($t1)
+	print_str ("\n")
 .end_macro

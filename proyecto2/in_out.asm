@@ -123,7 +123,7 @@
 .end_macro
 
 # Macro para realizar un refresh de la pantalla
-.macro refresh_court (%ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service, %estelas)
+.macro refresh_court (%ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service, %estelas, %puntaje)
 	get_time ()
 	move $a3, $a1
 	
@@ -174,7 +174,7 @@
 		j    verificaciones
 
 verificaciones:
-	is_ball_out_of_bounds (%ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service, %estelas)
+	is_ball_out_of_bounds (%ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service, %estelas, %puntaje)
 
 	verify_ball_bounced (%ball_x, %ball_y, %vel_y, %previous_bounces, $t8)
 
@@ -215,9 +215,9 @@ verificaciones:
 		net_line:	.asciiz "            O            \n"
 	.text
 	# En $t3 anotamos el número de estela que estamos dibujando
-	li $t3, 0
-	# Usaremos $a1 para evitar dibujar una estela en la red
-	li $t7, 0
+	li  $t3, 0
+	# Usaremos $t5 para evitar dibujar una estela en la red
+	li  $t5, 0
 
 trail:
 	add $t3, $t3, 1
@@ -227,7 +227,7 @@ trail:
 	
 verify_if_skip:
 	# Verificamos si tenemos que saltarnos la primera estela
-	li $t1, %skip_first
+	li   $t1, %skip_first
 	bgtz $t1, next_trail
 	
 no_skip:
@@ -247,7 +247,7 @@ no_skip:
 		j   imprimir
 
 	add_four:
-		li  $t7, 0
+		li  $t5, 0
 		add %estelas, %estelas, 4
 		j   trail
 
@@ -310,17 +310,17 @@ calcular_linea:
 
 	septima_lin:
 		la $t6, seventh_line
-		li $t7, 1
+		li $t5, 1
 		j  calcular_pos_x
 
 	octava_lin:
 		la $t6, eighth_line
-		li $t7, 1
+		li $t5, 1
 		j  calcular_pos_x
 
 	novena_lin:
 		la $t6, ninth_line
-		li $t7, 1
+		li $t5, 1
 		j  calcular_pos_x
 
 	# Calculamos la posición x de la lin correspondiente
