@@ -6,6 +6,7 @@
 #######################
 
 # Los macro son secuencias invocables que se definen una sola vez y se pueden usar varias veces
+# En este archivo se definen los macro de uso general para el proyecto
 
 # Macro para imprimir un número entero
 # Ya sea que el argumento es un valor immediate or un registro
@@ -27,7 +28,7 @@ texto:	.asciiz %str
 	syscall
 .end_macro
 
-# Macro para imprimir un space de ascii
+# Macro para imprimir un espacio reservado en memoria de caracteres ascii
 .macro print_space (%space)
     	# Imprimir el contenido del espacio reservado
     	li $v0, 4

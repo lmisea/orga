@@ -5,11 +5,16 @@
 #       19-10175       #
 ########################
 
+# Este archivo contiene las macros que se encargan de la lógica del movimiento
+# de la pelota, así como también de la lógica del juego en general
+
 # Macro para verificar si la pelota tocó el piso
 .macro verify_ball_bounced (%ball_x, %ball_y, %vel_y, %previous_bounces, %bounced)
 	blt %ball_y, 1, bounce
 	j end
 
+	# Si la pelota tocó el piso, se invierte su velocidad en y
+	# y se aumenta en 1 el contador de rebotes
 	bounce: li  %bounced, 1
 		mul %vel_y, %vel_y, -1
 		add %ball_y, %ball_y, 1
@@ -29,6 +34,7 @@
 			blt %ball_y, $t3, touched_net
 			j end
 
+	# Si la pelota pegó en la red, se invierte su velocidad en x
 	touched_net:	li %touched, 1
 			mul %vel_x, %vel_x, -1
 
@@ -56,7 +62,8 @@
 	end:
 .end_macro
 
-# Macro para que un jugador intente raquetear la pelota
+# Macro para verificar si un jugador puede raquetear la pelota
+# En caso de que pueda, el jugador raquetea la pelota
 .macro attempt_player_shot (%player, %ball_x, %previous_bounces, %vel_x, %vel_y, %mode, %turn, %service)
 	# Si %player es distinto de %turn, significa que el jugador que intentó
 	# raquetear no está en su turno o ya raqueteó una vez y por ende, el
@@ -145,11 +152,12 @@ verify_mode:
 	li %mode, %new_mode
 .end_macro
 
-# Macro para añadir una estela
+# Macro para añadir una estela al arreglo de estelas
 .macro add_trail (%ball_x, %ball_y, %estelas)
 	li   $t5, 0
 	add  %estelas, %estelas, 36
 
+	# Movemos las estelas una posición hacia atrás
 	move_to_previous:
 		add  $t5, $t5, 1
 		lb   $t1, 0(%estelas)
@@ -172,6 +180,7 @@ verify_mode:
 		sub  %estelas, %estelas, 4
 		j move_to_previous
 
+# Y guardamos en la primera posición del arreglo de estelas la nueva estela
 guardar_estela:
 	# Escribimos las coordenadas de x de la posición de la estela
 
@@ -205,6 +214,8 @@ guardar_estela:
 .end_macro
 
 # Macro para calcular una coordenada de una estela usando %estelas
+# Si %eje es igual a 'x', se calcula la coordenada en x
+# Si %eje es igual a 'y', se calcula la coordenada en y
 .macro calcular_coordenada_estela (%eje, %reg, %estelas)
 	li  $a1, 'x'
 	li  $t1, %eje
@@ -240,7 +251,10 @@ guardar_estela:
 .end_macro
 
 # Macro para empezar un nuevo servicio
+# En este macro no solo se acomoda la pelota en posición de servicio, sino
+# que también se actualiza el puntaje del juego, set y match
 .macro new_service (%player, %ball_x, %ball_y, %vel_x, %vel_y, %mode_one, %mode_two, %previous_bounces, %turn, %service, %estelas, %puntaje)
+	# Se reinician las variables de la pelota
 	li  %ball_y, 4
 	move %vel_x, $zero
 	move %vel_y, $zero
@@ -249,6 +263,7 @@ guardar_estela:
 	move %previous_bounces, $zero
 	move %service, $zero
 
+	# Se reinician las estelas
 	li   $a1, 44
 
 	li   $t1, '-'
@@ -262,6 +277,8 @@ guardar_estela:
 
 	li   $t1, %player
 
+	# Se acomoda la pelota en posición de servicio, se cambia el turno
+	# y se actualiza el puntaje
 	beqz $t1, player_one
 	j player_two
 
@@ -274,7 +291,7 @@ guardar_estela:
 			int_to_ascii ($t1)
 			sb   $t1, 0(%puntaje)
 			j    trail
-			
+
 	aumentar_set_p_one:
 			li   $t1, 0
 			sb   $t1, 0(%puntaje)
@@ -286,14 +303,14 @@ guardar_estela:
 			add  $t1, $t1, 1
 			int_to_ascii ($t1)
 			sb   $t1, 1(%puntaje)
-			j    trail	
-			
+			j    trail
+
 	verify_tiebreak_p_one:
 			lb   $t1, 4(%puntaje)
 			ascii_to_int ($t1)
 			bgt  $t1, 4, tiebreak_p_one
 			j    aumentar_match_p_one
-			
+
 	tiebreak_p_one:
 			lb   $t1, 1(%puntaje)
 			ascii_to_int ($t1)
@@ -301,7 +318,7 @@ guardar_estela:
 			int_to_ascii ($t1)
 			sb   $t1, 1(%puntaje)
 			j    trail
-			
+
 	aumentar_match_p_one:
 			li   $t1, 0
 			sb   $t1, 1(%puntaje)
@@ -311,8 +328,8 @@ guardar_estela:
 			add  $t1, $t1, 1
 			int_to_ascii ($t1)
 			sb   $t1, 2(%puntaje)
-			j    trail	
-			
+			j    trail
+
 	player_two: 	li %turn, 1
 			li %ball_x, 22
 			lb   $t1, 3(%puntaje)
@@ -322,7 +339,7 @@ guardar_estela:
 			int_to_ascii ($t1)
 			sb   $t1, 3(%puntaje)
 			j    trail
-			
+
 	aumentar_set_p_two:
 			li   $t1, 0
 			sb   $t1, 0(%puntaje)
@@ -335,13 +352,13 @@ guardar_estela:
 			int_to_ascii ($t1)
 			sb   $t1, 4(%puntaje)
 			j    trail
-			
+
 	verify_tiebreak_p_two:
 			lb   $t1, 1(%puntaje)
 			ascii_to_int ($t1)
 			bgt  $t1, 4, tiebreak_p_two
 			j    aumentar_match_p_two
-			
+
 	tiebreak_p_two:
 			lb   $t1, 4(%puntaje)
 			ascii_to_int ($t1)
@@ -349,7 +366,7 @@ guardar_estela:
 			int_to_ascii ($t1)
 			sb   $t1, 4(%puntaje)
 			j    trail
-			
+
 	aumentar_match_p_two:
 			li   $t1, 0
 			sb   $t1, 1(%puntaje)
@@ -363,21 +380,23 @@ guardar_estela:
 	trail: add_trail (%ball_x, %ball_y, %estelas)
 .end_macro
 
-# Macro para inicializar el puntaje del match
+# Macro para inicializar el puntaje del juego, set y match en 0
 .macro inicializar_puntaje (%puntaje)
 	li   $a1, 6
 	li   $t1, '0'
-	
+
 	inicializar:
 		sb   $t1, 0(%puntaje)
 		add  %puntaje, %puntaje, 1
 		sub  $a1, $a1, 1
 		bnez $a1, inicializar
-		
+
 	sub  %puntaje, %puntaje, 6
 .end_macro
 
 # Macro para imprimir el puntaje actual
+# También se encarga de verificar si alguno de los jugadores ganó 3 matches
+# con lo cual se termina el juego
 .macro imprimir_puntaje (%puntaje)
 	# Imprimimos la sección de game
 	print_str ("Game:  ")
@@ -387,19 +406,19 @@ guardar_estela:
 	beq  $t1, 1, quince
 	beq  $t1, 2, treinta
 	beq  $t1, 3, cuarenta
-	
+
 	cero: 	  print_str ("00")
 		  j game_p_two
-		
+
 	quince:   print_str ("15")
 		  j game_p_two
-		
+
 	treinta:  print_str ("30")
 		  j game_p_two
-		
+
 	cuarenta: print_str ("40")
 		  j game_p_two
-	
+
 game_p_two:
 	print_str ("       Game:  ")
 	lb   $t1, 3(%puntaje)
@@ -408,20 +427,20 @@ game_p_two:
 	beq  $t1, 1, fifteen
 	beq  $t1, 2, thirty
 	beq  $t1, 3, forty
-	
+
 	zero: 	 print_str ("00")
 		 j sets
-		
+
 	fifteen: print_str ("15")
 		 j sets
-		
+
 	thirty:  print_str ("30")
 		 j sets
-		
+
 	forty:   print_str ("40")
 		 j sets
-		 
-sets:	
+
+sets:
 	# Imprimimos la sección de set
 	print_str ("\nSet:   ")
 	lb  $t1, 1(%puntaje)
@@ -431,7 +450,7 @@ sets:
 	lb  $t1, 4(%puntaje)
 	ascii_to_int ($t1)
 	print_int ($t1)
-	
+
 	# Imprimimos la sección de match
 	print_str ("\nMatch: ")
 	lb  $t1, 2(%puntaje)
@@ -442,7 +461,7 @@ sets:
 	ascii_to_int ($t1)
 	print_int ($t1)
 	print_str ("\n\n")
-	
+
 	# Verificamos si alguno de los jugadores ganó 3 matches
 	lb  $t1, 2(%puntaje)
 	ascii_to_int ($t1)
@@ -450,19 +469,20 @@ sets:
 	lb  $t1, 5(%puntaje)
 	ascii_to_int ($t1)
 	beq $t1, 3, player_two_won
+	# Si no, continuamos con el juego
 	j   end
-	
+
 	player_one_won:
 		print_str ("Player 1 won 3 matches.\n")
 		print_str ("Player 1 won!\n")
 		print_str ("Thanks for playing :D\n")
 		done ()
-		
+
 	player_two_won:
 		print_str ("Player 2 won 3 matches.\n")
 		print_str ("Player 2 won!\n")
 		print_str ("Thanks for playing :D\n")
 		done ()
-	
+
 	end:
 .end_macro

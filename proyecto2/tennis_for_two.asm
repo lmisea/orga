@@ -5,6 +5,14 @@
 #      19-10175       #
 #######################
 
+# Este programa es una implementación del juego Tennis For Two, el cual fue
+# creado en 1958 por William Higinbotham. El juego consiste en una simulación
+# de un partido de tenis, donde dos jugadores se enfrentan en una cancha
+
+# Este archivo contiene el main del programa, el cual se encarga de inicializar
+# las variables y llamar a las funciones que se encargan de manejar el juego
+# y así, poder jugar una partida de Tennis For Two
+
 .include "in_out.asm"
 
 .data
