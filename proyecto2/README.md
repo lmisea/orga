@@ -16,6 +16,14 @@ El juego se juega con las teclas `d` para raquetear con el jugador 1, y `l` para
 
 También se añadió la opción de terminar el juego en cualquier momento, presionando la tecla `q`.
 
+## Estructura de archivos
+
+- `tennis_for_two.asm`: Cliente del proyecto. Contiene la función `main`, que es la función principal del programa, que se encarga de inicializar el juego y permitir que se juegue.
+- `in_out.asm`: Archivo que contiene los macros para leer la tecla presionada por el usuario, y los macros para poder refrescar la pantalla, imprimir la cancha, imprimir la pelota, imprimir las estelas de la pelota, imprimir el puntaje, etc.
+- `ball.asm`: Archivo que contiene los macros que se encargan de la lógica del movimiento de la pelota, y de la lógica de raqueteo de la pelota. A su vez, también contiene los macros que se encargan de verificar cuando la pelota sale de la pantalla, de actualizar el puntaje y de reiniciar la posición de la pelota cuando se inicia un nuevo servicio.
+- `macros.asm`: Archivo que contiene los macros de uso general, como los macros para imprimir un string, para imprimir un número, para dormir el programa, etc.
+- `README.md`: Archivo que contiene el informe del proyecto y toda la información relevante al proyecto.
+
 ## Diseño de la estructura de datos
 
 Este proyecto se apoya mucho en el uso de macros, para poder modularizar el código y hacerlo más legible. Por ejemplo, se usan macros para guardar la posición actual de la pelota, para leer la tecla presionada por el usuario, para refrescar la pantalla, etc.
@@ -47,7 +55,8 @@ En caso de que se necesiten más registros, se adoptaría esta misma estrategia 
 
 ## Ejemplo de uso
 
-Un ejemplo de uso del programa es el siguiente:
+Como se explica en la **Esctructura de archivos**, el archivo `tennis_for_two.asm` es el cliente del proyecto. Este archivo contiene la función `main`, por lo que para ejecutar el juego, se debe ensamblar y ejecutar este archivo.
+Y como se explica en **Detalles de la implementación**, es necesario usar el _keyboard and display MMIO simulator_ para poder jugar el juego. Este se puede encontrar en la pestaña _Tools_ del simulador MARS. Y se debe conectar a MIPS usando el botón _Connect to MIPS_. Este simulador es donde se deben escribir las teclas para poder jugar el juego.
 
 ```
 Game:  00       Game:  00
@@ -291,9 +300,7 @@ Match: 0        Match: 0
 OOOOOOOOOOOOOOOOOOOOOOOOO
 ```
 
-Donde se puede apreciar que el jugador 2 ganó el primer "game".
-
-**Nota:** Es importante usar el _keyboard and display MMIO simulator_ para poder jugar el juego. Este se puede encontrar en la pestaña _Tools_ del simulador MARS.
+En este ejemplo se puede ver cómo se juega el juego y cómo se muestra el puntaje en la pantalla. En este caso, el jugador 2 ganó el primer "game", y esto se refleja en la pantalla. También se puede ver cómo se muestran las estelas de la pelota y cómo rebota la pelota en el piso de la cancha.
 
 ## Detalles de la implementación
 
